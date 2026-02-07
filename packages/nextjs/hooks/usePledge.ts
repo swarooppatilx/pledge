@@ -2,8 +2,9 @@
  * Pledge Protocol - React Hooks
  * Unified hooks for interacting with Pledge contracts
  */
+import { useEffect, useRef } from "react";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { PledgeAbi } from "~~/contracts/implementationContracts";
+import { PledgeAbi, PledgeTokenAbi } from "~~/contracts/implementationContracts";
 import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import type { HolderInfo, PledgeStatus, PledgeSummary } from "~~/types/pledge";
 
@@ -477,3 +478,63 @@ export const useBuyTreasuryStock = () => {
 
   return { buyTreasuryStock, isPending, isConfirming, isSuccess, hash };
 };
+
+// ============ Founder Share Tracking ============
+
+/**
+ * Track founder's current share ownership and changes over time
+ * Detects when founder sells shares and shows trend
+ */
+export const useFounderShare = (tokenAddress: `0x${string}`, creatorAddress: `0x${string}`) => {
+  const previousBalance = useRef<bigint | null>(null);
+  const previousPercentage = useRef<number | null>(null);
+
+  const TOTAL_SUPPLY = BigInt(1_000_000) * BigInt(1e18);
+
+  // Get founder's current token balance
+  const { data: founderBalance, isLoading, refetch } = useReadContract({
+    address: tokenAddress,
+    abi: PledgeTokenAbi,
+    functionName: "balanceOf",
+    args: [creatorAddress],
+    query: {
+      enabled: !!tokenAddress && !!creatorAddress,
+      refetchInterval: 10000, // Poll every 10 seconds
+    },
+  });
+
+  const currentBalance = (founderBalance as bigint) ?? 0n;
+  const currentPercentage = Number((currentBalance * 10000n) / TOTAL_SUPPLY) / 100; // In percentage
+
+  // Track previous value
+  useEffect(() => {
+    if (founderBalance !== undefined && previousBalance.current === null) {
+      previousBalance.current = currentBalance;
+      previousPercentage.current = currentPercentage;
+    }
+  }, [founderBalance, currentBalance, currentPercentage]);
+
+  // Calculate trend
+  const prevPct = previousPercentage.current ?? currentPercentage;
+  const trend: "up" | "down" | "neutral" = currentPercentage > prevPct ? "up" : currentPercentage < prevPct ? "down" : "neutral";
+  const changeAmount = currentPercentage - prevPct;
+
+  // Update previous when there's a real change
+  useEffect(() => {
+    if (founderBalance !== undefined && previousBalance.current !== null && previousBalance.current !== currentBalance) {
+      previousBalance.current = currentBalance;
+      previousPercentage.current = currentPercentage;
+    }
+  }, [founderBalance, currentBalance, currentPercentage]);
+
+  return {
+    currentBalance,
+    currentPercentage,
+    previousPercentage: prevPct,
+    trend,
+    changeAmount,
+    isLoading,
+    refetch,
+  };
+};
+

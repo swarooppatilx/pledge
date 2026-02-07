@@ -1,79 +1,121 @@
+/* Google Fonts - Inter Variable & JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant dark (&:where([data-theme=pledgedark], [data-theme=pledgedark] *));
 
 @theme {
+  /* Surface Colors */
+  --color-surface-base-100: #0D0D0D;
+  --color-surface-base-200: #131313;
+  --color-surface-base-300: #1B1B1B;
+  --color-header-glass: rgba(13, 13, 13, 0.85);
+  
+  /* Brand Colors */
+  --color-brand-primary: #FF007A;
+  --color-brand-primary-hover: #E5006D;
+  --color-brand-primary-muted: rgba(255, 0, 122, 0.08);
+  --color-brand-accent-green: #27AE60;
+  --color-brand-accent-green-muted: rgba(39, 174, 96, 0.1);
+  
+  /* Text Colors */
+  --color-text-hero: #FFFFFF;
+  --color-text-body: #9B9B9B;
+  --color-text-muted: #5E5E5E;
+  --color-text-success: #27AE60;
+  --color-text-danger: #FF4343;
+  
+  /* Border Colors */
+  --color-border-subtle: #222222;
+  --color-border-active: #333333;
+  --color-border-highlight: #FF007A;
+  
+  /* Effects */
   --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
+  --shadow-subtle: 0 4px 12px rgba(0,0,0,0.5);
+  --shadow-pink-glow: 0 0 20px rgba(255, 0, 122, 0.15);
+  
+  /* Radius */
+  --radius-card: 24px;
+  --radius-modal: 28px;
+  --radius-input: 16px;
+  --radius-button: 18px;
+  --radius-tag: 12px;
+  
+  /* Animations */
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-yield-tick: yieldTick 0.3s ease-out;
+  --animate-page-enter: pageEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-button-press: buttonPress 0.1s ease-out;
+  
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-@plugin "daisyui" {
-  themes:
-    light,
-    dark --prefersdark;
+/* Keyframes for animations */
+@keyframes yieldTick {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes pageEnter {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes buttonPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+@keyframes backgroundGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* DaisyUI Configuration */
+@plugin "daisyui";
+
+/* Pledge Protocol Dark Theme - Uniswap Aesthetic */
 @plugin "daisyui/theme" {
-  name: "light";
+  name: "pledgedark";
 
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
-  --color-neutral-content: #ffffff;
-  --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #dae8ff;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-primary: #FF007A;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #1B1B1B;
+  --color-secondary-content: #9B9B9B;
+  --color-accent: #27AE60;
+  --color-accent-content: #FFFFFF;
+  --color-neutral: #131313;
+  --color-neutral-content: #9B9B9B;
+  --color-base-100: #0D0D0D;
+  --color-base-200: #131313;
+  --color-base-300: #1B1B1B;
+  --color-base-content: #FFFFFF;
+  --color-info: #3B82F6;
+  --color-info-content: #FFFFFF;
+  --color-success: #27AE60;
+  --color-success-content: #FFFFFF;
+  --color-warning: #F59E0B;
+  --color-warning-content: #000000;
+  --color-error: #FF4343;
+  --color-error-content: #FFFFFF;
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-  --tt-tailw: 6px;
-}
-
-@plugin "daisyui/theme" {
-  name: "dark";
-
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
-  --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #385183;
-  --color-base-200: #2a3655;
-  --color-base-300: #212638;
-  --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
-
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
+  --radius-field: 16px;
+  --radius-box: 24px;
+  --radius-btn: 18px;
 
   --tt-tailw: 6px;
-  --tt-bg: var(--color-primary);
+  --tt-bg: var(--color-base-300);
 }
 
 /*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
+  Pledge Protocol - Base Styles
+  Uniswap Dark Aesthetic
 */
 @layer base {
   *,
@@ -81,43 +123,825 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-border-subtle, #222222);
   }
 
-  p {
-    margin: 1rem 0;
+  html {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     min-height: 100vh;
+    background: var(--color-base-100);
+    color: var(--color-text-hero);
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
+  p {
+    margin: 0.75rem 0;
+    color: var(--color-text-body);
+  }
+
+  h1, h2, h3, h4 {
     margin-bottom: 0.5rem;
-    line-height: 1;
+    line-height: 1.2;
+    color: var(--color-text-hero);
   }
 }
 
 :root,
-[data-theme] {
-  background: var(--color-base-200);
+[data-theme],
+[data-theme="pledgedark"] {
+  background: #0D0D0D;
+  color: #FFFFFF;
+  --color-base-100: #0D0D0D;
+  --color-base-200: #131313;
+  --color-base-300: #1B1B1B;
+  --color-base-content: #FFFFFF;
 }
 
+/* Force dark theme on all DaisyUI components */
+.card,
+.stat,
+.badge,
+.btn,
+.modal,
+.modal-box,
+.dropdown-content,
+.menu {
+  background-color: #131313;
+  color: #FFFFFF;
+}
+
+/* Override DaisyUI card */
+.card {
+  background: #131313 !important;
+  border: 1px solid #222222;
+}
+
+.card-body {
+  color: #FFFFFF;
+}
+
+.card-title {
+  color: #FFFFFF !important;
+}
+
+/* Modal overrides */
+.modal-box {
+  background: #131313 !important;
+  border: 1px solid #222222;
+  color: #FFFFFF;
+}
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Input overrides */
+.input,
+.select,
+.textarea {
+  background: #1B1B1B !important;
+  border: 1px solid #222222 !important;
+  color: #FFFFFF !important;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #333333 !important;
+  outline: none !important;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #5E5E5E !important;
+}
+
+.label-text,
+.label-text-alt {
+  color: #9B9B9B !important;
+}
+
+/* Stat overrides */
+.stat {
+  background: #131313 !important;
+  color: #FFFFFF !important;
+}
+
+.stat-title {
+  color: #5E5E5E !important;
+}
+
+.stat-value {
+  color: #FFFFFF !important;
+}
+
+.stat-desc {
+  color: #9B9B9B !important;
+}
+
+/* Dropdown & Menu overrides */
+.dropdown-content,
+.menu {
+  background: #131313 !important;
+  border: 1px solid #222222;
+}
+
+.menu li a {
+  color: #FFFFFF;
+}
+
+.menu li a:hover {
+  background: #1B1B1B;
+}
+
+/* Button overrides */
 .btn {
-  @apply shadow-md;
+  border-color: #222222;
+}
+
+.btn-ghost {
+  color: #FFFFFF;
+}
+
+.btn-ghost:hover {
+  background: #1B1B1B;
+}
+
+/* Loading spinner */
+.loading {
+  color: #FF007A;
+}
+
+/* Divider */
+.divider {
+  border-color: #222222;
+}
+
+.divider::before,
+.divider::after {
+  background-color: #222222;
+}
+
+/* ========================================
+   TYPOGRAPHY SCALES
+   ======================================== */
+
+.text-display {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.text-h1 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.text-h2 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+.text-label {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: #5E5E5E;
+}
+
+.text-price-big {
+  font-size: 36px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+.text-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.text-muted {
+  color: #5E5E5E !important;
+}
+
+.text-body {
+  color: #9B9B9B !important;
+}
+
+.text-hero {
+  color: #FFFFFF !important;
+}
+
+.text-success {
+  color: #27AE60 !important;
+}
+
+.text-danger {
+  color: #FF4343 !important;
+}
+
+/* ========================================
+   CARD & SURFACE STYLES
+   ======================================== */
+
+.card-pledge {
+  background: #131313 !important;
+  border-radius: var(--radius-card);
+  border: 1px solid #222222;
+  transition: all 0.2s ease;
+  color: #FFFFFF;
+  padding: 1.25rem;
+}
+
+.card-pledge:hover {
+  border-color: #333333;
+}
+
+.card-swap {
+  background: #131313 !important;
+  border-radius: var(--radius-modal);
+  border: 1px solid #222222;
+  padding: 1rem;
+  color: #FFFFFF;
+}
+
+.surface-elevated {
+  background: #131313;
+  border: 1px solid #222222;
+  color: #FFFFFF;
+}
+
+.surface-glass {
+  background: rgba(13, 13, 13, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #FFFFFF;
+}
+
+/* ========================================
+   BUTTON STYLES
+   ======================================== */
+
+.btn {
+  border-radius: var(--radius-button);
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn.btn-ghost {
-  @apply shadow-none;
+  box-shadow: none;
 }
+
+.btn-brand {
+  background: var(--color-brand-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.btn-brand:hover {
+  background: var(--color-brand-primary-hover);
+  opacity: 0.95;
+}
+
+.btn-brand:active {
+  transform: scale(0.98);
+}
+
+.btn-brand-outline {
+  background: transparent;
+  color: var(--color-brand-primary);
+  border: 1px solid var(--color-brand-primary);
+  border-radius: var(--radius-button);
+}
+
+.btn-brand-outline:hover {
+  background: var(--color-brand-primary-muted);
+}
+
+/* ========================================
+   INPUT STYLES
+   ======================================== */
+
+.input-pledge {
+  background: #1B1B1B;
+  border-radius: 12px;
+  border: 1px solid #222222;
+  color: #FFFFFF;
+  padding: 0.875rem 1rem;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  width: 100%;
+}
+
+.input-pledge:focus {
+  border-color: #FF007A;
+  outline: none;
+}
+
+.input-pledge::placeholder {
+  color: #5E5E5E;
+}
+
+/* Number input spinners */
+.input-pledge::-webkit-inner-spin-button,
+.input-pledge::-webkit-outer-spin-button {
+  opacity: 0.5;
+}
+
+/* ========================================
+   TAG & BADGE STYLES
+   ======================================== */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-tag);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag-ico-lock {
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.tag-success {
+  background: var(--color-brand-accent-green-muted);
+  color: var(--color-brand-accent-green);
+}
+
+.tag-primary {
+  background: var(--color-brand-primary-muted);
+  color: var(--color-brand-primary);
+}
+
+.tag-recycled {
+  background: rgba(147, 51, 234, 0.1);
+  color: #A855F7;
+}
+
+/* ========================================
+   DATA TABLE STYLES
+   ======================================== */
+
+.table-pledge {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-pledge thead th {
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 1rem;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+.table-pledge tbody tr {
+  height: 72px;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.table-pledge tbody tr:hover {
+  background: rgba(19, 19, 19, 0.5);
+}
+
+.table-pledge td {
+  padding: 1rem 0.5rem;
+  vertical-align: middle;
+}
+
+.table-pledge .cell-numeric {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}
+
+.table-pledge .trend-up {
+  color: var(--color-text-success);
+}
+
+.table-pledge .trend-down {
+  color: var(--color-text-danger);
+}
+
+/* ========================================
+   YIELD TICKER ANIMATION
+   ======================================== */
+
+.yield-ticker {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+}
+
+.yield-ticker-value {
+  animation: yieldTick 0.3s ease-out;
+}
+
+.yield-ticker.updating .yield-ticker-value {
+  color: var(--color-brand-accent-green);
+}
+
+/* ========================================
+   STAT BANNER
+   ======================================== */
+
+.stat-banner {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #131313 !important;
+  border-radius: var(--radius-card);
+  border: 1px solid #222222;
+  color: #FFFFFF;
+}
+
+.stat-banner-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-banner-label {
+  font-size: 12px;
+  color: #5E5E5E;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-banner-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFFFFF;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-banner-trend {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stat-banner-trend.positive {
+  color: var(--color-text-success);
+}
+
+.stat-banner-trend.negative {
+  color: var(--color-text-danger);
+}
+
+/* ========================================
+   PRICE DISPLAY
+   ======================================== */
+
+.price-market {
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-text-hero);
+}
+
+.price-floor {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--color-text-muted);
+}
+
+/* ========================================
+   NAVIGATION HEADER
+   ======================================== */
+
+.header-pledge {
+  position: sticky;
+  top: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-header-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 50;
+}
+
+.search-bar-pledge {
+  background: #131313;
+  border-radius: var(--radius-input);
+  border: 1px solid #222222;
+  width: 400px;
+  padding: 0.5rem 1rem;
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.search-bar-pledge:focus {
+  border-color: #333333;
+  outline: none;
+}
+
+.search-bar-pledge::placeholder {
+  color: #5E5E5E;
+}
+
+.network-pill {
+  background: #131313;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #9B9B9B;
+  border: 1px solid #222222;
+}
+
+/* ========================================
+   PAGE ANIMATIONS
+   ======================================== */
+
+.page-enter {
+  animation: pageEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   BACKGROUND GLOW EFFECTS
+   ======================================== */
+
+.glow-primary {
+  box-shadow: var(--shadow-pink-glow);
+}
+
+.glow-bg {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: var(--color-brand-primary);
+  filter: blur(120px);
+  opacity: 0.15;
+  animation: backgroundGlow 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ========================================
+   SWAP WIDGET STYLES (Uniswap v4 themed)
+   ======================================== */
+
+.swap-widget {
+  background: #131313;
+  border-radius: var(--radius-modal);
+  border: 1px solid #222222;
+  padding: 1rem;
+  color: #FFFFFF;
+}
+
+.swap-input-container {
+  background: #0D0D0D;
+  border-radius: var(--radius-input);
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.swap-input {
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  font-weight: 500;
+  color: #FFFFFF;
+  width: 100%;
+}
+
+.swap-input:focus {
+  outline: none;
+}
+
+.swap-input::placeholder {
+  color: #5E5E5E;
+}
+
+.swap-button {
+  width: 100%;
+  background: var(--color-brand-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 1rem;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.swap-button:hover {
+  background: var(--color-brand-primary-hover);
+}
+
+.swap-button:disabled {
+  background: var(--color-base-300);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* ========================================
+   WARNING OVERLAY
+   ======================================== */
+
+.warning-overlay {
+  background: rgba(255, 67, 67, 0.1);
+  border: 1px solid rgba(255, 67, 67, 0.3);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+  color: var(--color-text-danger);
+}
+
+/* ========================================
+   IDENTICON FALLBACK
+   ======================================== */
+
+.identicon-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-accent-green));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+}
+
+/* ========================================
+   FILTER TABS
+   ======================================== */
+
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: #131313;
+  padding: 0.25rem;
+  border-radius: var(--radius-input);
+  border: 1px solid #222222;
+}
+
+.filter-tab {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-tag);
+  font-size: 14px;
+  font-weight: 500;
+  color: #9B9B9B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+}
+
+.filter-tab:hover {
+  color: #FFFFFF;
+}
+
+.filter-tab.active {
+  background: #1B1B1B;
+  color: #FFFFFF;
+}
+
+/* ========================================
+   LINK STYLES
+   ======================================== */
 
 .link {
   text-underline-offset: 2px;
+  transition: opacity 0.15s ease;
 }
 
 .link:hover {
   opacity: 80%;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0D0D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1B1B1B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+/* ========================================
+   GLOBAL TEXT COLOR UTILITIES
+   ======================================== */
+
+/* Ensure all text in app is readable on dark background */
+body,
+#__next,
+main {
+  color: #FFFFFF;
+}
+
+/* Force white text on specific elements that might inherit wrong colors */
+h1, h2, h3, h4, h5, h6 {
+  color: #FFFFFF;
+}
+
+/* Ensure badge text is visible */
+.badge {
+  border-color: #222222;
+}
+
+.badge-primary {
+  background: #FF007A;
+  color: #FFFFFF;
+}
+
+.badge-success {
+  background: #27AE60;
+  color: #FFFFFF;
+}
+
+.badge-warning {
+  background: #F59E0B;
+  color: #000000;
+}
+
+.badge-error {
+  background: #FF4343;
+  color: #FFFFFF;
+}
+
+/* Progress bar */
+.progress {
+  background: #1B1B1B;
+}
+
+.progress::-webkit-progress-bar {
+  background: #1B1B1B;
+  border-radius: 8px;
+}
+
+.progress::-webkit-progress-value {
+  background: #FF007A;
+  border-radius: 8px;
+}
+
+.progress::-moz-progress-bar {
+  background: #FF007A;
+  border-radius: 8px;
+}
+
+/* Tooltip */
+.tooltip::before {
+  background: #1B1B1B;
+  color: #FFFFFF;
+  border: 1px solid #222222;
+}
+
+/* Alert */
+.alert {
+  background: #131313;
+  border: 1px solid #222222;
+  color: #FFFFFF;
+}
+
+/* Table */
+table {
+  color: #FFFFFF;
+}
+
+th {
+  color: #5E5E5E;
+}
+
+td {
+  color: #FFFFFF;
 }

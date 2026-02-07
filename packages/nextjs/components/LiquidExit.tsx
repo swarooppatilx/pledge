@@ -27,15 +27,15 @@ export const LiquidExit = ({ tokenAddress }: LiquidExitProps) => {
   if (!isConnected) return null;
 
   return (
-    <div className="card bg-accent/10 border border-accent p-4 mt-4">
-      <h3 className="font-bold text-accent">🔄 DeFi Secondary Market</h3>
-      <p className="text-sm mt-2 opacity-80">
+    <div className="bg-[#1B1B1B] border border-[#222222] rounded-xl p-4 mt-4">
+      <h3 className="font-medium text-white">Secondary Market</h3>
+      <p className="text-sm mt-2 text-[#9B9B9B]">
         Your pledge receipts are liquid ERC20 tokens. You can exit your position by selling on Uniswap instead of
         waiting for refund.
       </p>
-      <p className="text-xs mt-1 text-warning">⚠️ Warning: Selling tokens forfeits your refund rights</p>
-      <button className="btn btn-sm btn-accent mt-3" onClick={handleUniswapExit}>
-        Exit via Uniswap →
+      <p className="text-xs mt-2 text-[#F2994A]">Selling tokens forfeits your refund rights</p>
+      <button className="btn-brand w-full mt-3 py-2 text-sm" onClick={handleUniswapExit}>
+        Exit via Uniswap
       </button>
     </div>
   );

@@ -1,376 +1,252 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
-import { formatEther, parseEther } from "viem";
+import { formatEther } from "viem";
 import { useAccount } from "wagmi";
-import { useAllPledgeSummaries, useCreatePledge } from "~~/hooks/usePledge";
-import { calculateProgress, formatBps, statusToColor, statusToString, timeRemaining } from "~~/types/pledge";
+import {
+  ArrowPathIcon,
+  PlusIcon,
+  SparklesIcon,
+} from "@heroicons/react/24/outline";
+import { StatBanner, ProjectAvatar, IcoLockBadge, RecycledTag, FilterTabs } from "~~/components/ui";
+import { useAllPledgeSummaries } from "~~/hooks/usePledge";
+import { calculateProgress, formatBps, statusToString, timeRemaining, PledgeStatus } from "~~/types/pledge";
+
+// Helper to format ETH values with reasonable precision
+const formatEthValue = (value: bigint, decimals: number = 6): string => {
+  const ethValue = Number(formatEther(value));
+  if (ethValue === 0) return "0";
+  if (ethValue < 0.000001) return "<0.000001";
+  if (ethValue < 1) return ethValue.toFixed(decimals);
+  if (ethValue < 1000) return ethValue.toFixed(4);
+  return ethValue.toLocaleString(undefined, { maximumFractionDigits: 2 });
+};
+
+const FILTER_TABS = [
+  { id: "all", label: "All Projects" },
+  { id: "new", label: "New Assets" },
+  { id: "yield", label: "Top Yield" },
+  { id: "governance", label: "Governance" },
+];
 
 const PledgesPage: NextPage = () => {
   const { address: connectedAddress } = useAccount();
   const { summaries, isLoading, refetch } = useAllPledgeSummaries();
-  const { createPledge, isPending } = useCreatePledge();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    ticker: "",
-    description: "",
-    imageUrl: "",
-    fundingGoal: "",
-    durationDays: "30",
-    founderShareBps: "5100",
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  // Calculate aggregate stats
+  const totalRaised = summaries.reduce((acc, s) => acc + s.totalRaised, 0n);
+  const totalVaultValue = summaries.reduce((acc, s) => acc + s.vaultBalance, 0n);
+  const activePledges = summaries.filter(s => s.status === PledgeStatus.Active).length;
+
+  // Filter summaries based on active filter
+  const filteredSummaries = summaries.filter(pledge => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "new") return pledge.status === PledgeStatus.Funding;
+    if (activeFilter === "yield") return pledge.status === PledgeStatus.Active && pledge.vaultBalance > pledge.totalRaised;
+    if (activeFilter === "governance") return pledge.status === PledgeStatus.Active;
+    return true;
   });
 
-  const handleCreate = async () => {
-    try {
-      await createPledge({
-        name: formData.name,
-        ticker: formData.ticker.toUpperCase(),
-        description: formData.description,
-        imageUrl: formData.imageUrl,
-        fundingGoal: parseEther(formData.fundingGoal),
-        durationDays: BigInt(formData.durationDays),
-        founderShareBps: BigInt(formData.founderShareBps),
-      });
-      setIsModalOpen(false);
-      setFormData({
-        name: "",
-        ticker: "",
-        description: "",
-        imageUrl: "",
-        fundingGoal: "",
-        durationDays: "30",
-        founderShareBps: "5100",
-      });
-      refetch();
-    } catch (error) {
-      console.error("Failed to create pledge:", error);
-    }
-  };
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-bold">Pledge Protocol</h1>
-          <p className="text-base-content/60 mt-2">Decentralized Stock Exchange for Startups</p>
-        </div>
-        {connectedAddress && (
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-            + Create Pledge
-          </button>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="stats shadow mb-8 w-full">
-        <div className="stat">
-          <div className="stat-title">Total Pledges</div>
-          <div className="stat-value">{summaries.length}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Total Raised</div>
-          <div className="stat-value">{formatEther(summaries.reduce((acc, s) => acc + s.totalRaised, 0n))} ETH</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Listing Tax</div>
-          <div className="stat-value text-sm">0.01 ETH</div>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg"></span>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && summaries.length === 0 && (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-semibold mb-2">No pledges yet</h3>
-          <p className="text-base-content/60 mb-4">Be the first to create a pledge!</p>
+    <div className="min-h-screen bg-[#0D0D0D] page-enter">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-display mb-2">Trending Projects</h1>
+            <p className="text-[#5E5E5E]">Discover and invest in equity-backed startups</p>
+          </div>
           {connectedAddress && (
-            <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-              Create First Pledge
-            </button>
+            <Link
+              href="/pledges/create"
+              className="btn-brand flex items-center gap-2"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Create Pledge
+            </Link>
           )}
         </div>
-      )}
 
-      {/* Pledge Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {summaries.map(pledge => {
-          const progress = calculateProgress(pledge.totalRaised, pledge.fundingGoal);
-          const hasYield = pledge.vaultBalance > pledge.totalRaised;
+        {/* Stat Banner */}
+        <StatBanner
+          items={[
+            { label: "Total Raised", value: `${formatEthValue(totalRaised)} ETH`, trend: `${summaries.length} pledges`, trendType: "neutral" },
+            { label: "Vault TVL", value: `${formatEthValue(totalVaultValue)} ETH`, trend: "Earning yield", trendType: "positive" },
+            { label: "Active Projects", value: String(activePledges), trend: "Trading live", trendType: "positive" },
+          ]}
+          className="mb-8"
+        />
 
-          return (
-            <div key={pledge.address} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-              <div className="card-body">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="card-title">{pledge.name}</h2>
-                    <p className="text-sm text-base-content/60">p{pledge.ticker}</p>
-                  </div>
-                  <span className={`badge ${statusToColor(pledge.status)}`}>{statusToString(pledge.status)}</span>
-                </div>
+        {/* Filter Tabs */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <FilterTabs
+            tabs={FILTER_TABS}
+            activeTab={activeFilter}
+            onChange={setActiveFilter}
+          />
+          <button
+            onClick={() => refetch()}
+            className="text-[#5E5E5E] hover:text-white transition-colors flex items-center gap-1 text-sm"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Refresh
+          </button>
+        </div>
 
-                {/* Progress */}
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{formatEther(pledge.totalRaised)} ETH</span>
-                    <span>{formatEther(pledge.fundingGoal)} ETH goal</span>
-                  </div>
-                  <progress className="progress progress-primary w-full" value={progress} max="100"></progress>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
-                  <div>
-                    <span className="text-base-content/60">Founder Share</span>
-                    <p className="font-semibold">{formatBps(pledge.founderShareBps)}</p>
-                  </div>
-                  <div>
-                    <span className="text-base-content/60">Time Left</span>
-                    <p className="font-semibold">{timeRemaining(pledge.deadline)}</p>
-                  </div>
-                  <div>
-                    <span className="text-base-content/60">Vault</span>
-                    <p className="font-semibold text-success">{formatEther(pledge.vaultBalance)} ETH</p>
-                  </div>
-                  <div>
-                    <span className="text-base-content/60">Circulating</span>
-                    <p className="font-semibold">{Number(pledge.circulatingSupply / BigInt(1e15)) / 1000}M</p>
-                  </div>
-                </div>
-
-                {/* Yield indicator for active pledges */}
-                {pledge.status === 1 && hasYield && (
-                  <div className="badge badge-success badge-sm gap-1 mt-2">📈 Earning yield</div>
-                )}
-
-                {/* Creator */}
-                <div className="mt-4 pt-4 border-t border-base-300">
-                  <span className="text-xs text-base-content/60">Created by</span>
-                  <Address address={pledge.creator} />
-                </div>
-
-                {/* Actions */}
-                <div className="card-actions justify-end mt-4">
-                  <a href={`/pledges/${pledge.address}`} className="btn btn-sm btn-primary">
-                    View Details →
-                  </a>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Create Modal */}
-      {isModalOpen && (
-        <dialog className="modal modal-open">
-          <div className="modal-box max-w-lg">
-            <button
-              className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-              onClick={() => setIsModalOpen(false)}
-            >
-              ✕
-            </button>
-            <h3 className="font-bold text-lg mb-4">🚀 Create New Pledge</h3>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Project Name *</span>
-              </label>
-              <input
-                type="text"
-                placeholder="ACME Corp"
-                className="input input-bordered"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Ticker Symbol *</span>
-                <span className="label-text-alt text-base-content/60">3-6 characters</span>
-              </label>
-              <div className="join">
-                <span className="join-item btn btn-disabled">p</span>
-                <input
-                  type="text"
-                  placeholder="ACME"
-                  className="input input-bordered join-item w-full"
-                  maxLength={6}
-                  minLength={3}
-                  value={formData.ticker}
-                  onChange={e =>
-                    setFormData({ ...formData, ticker: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "") })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Description</span>
-              </label>
-              <textarea
-                placeholder="Describe your project and what you're building..."
-                className="textarea textarea-bordered h-24"
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Image URL (optional)</span>
-              </label>
-              <input
-                type="url"
-                placeholder="https://example.com/logo.png"
-                className="input input-bordered"
-                value={formData.imageUrl}
-                onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-              />
-            </div>
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text">Funding Goal (ETH) *</span>
-              </label>
-              <input
-                type="number"
-                placeholder="10"
-                min="0.01"
-                step="0.01"
-                className="input input-bordered"
-                value={formData.fundingGoal}
-                onChange={e => setFormData({ ...formData, fundingGoal: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Duration (days)</span>
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  className="input input-bordered"
-                  value={formData.durationDays}
-                  onChange={e => setFormData({ ...formData, durationDays: e.target.value })}
-                />
-              </div>
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Founder Share (%)</span>
-                  <span className="label-text-alt text-base-content/60">max 99%</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="99"
-                  className="input input-bordered"
-                  value={Number(formData.founderShareBps) / 100}
-                  onChange={e => {
-                    const value = Math.min(99, Math.max(0, Number(e.target.value)));
-                    setFormData({ ...formData, founderShareBps: String(value * 100) });
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="alert alert-info mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="stroke-current shrink-0 w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-              <div>
-                <p className="font-semibold">Listing requires 0.01 ETH tax</p>
-                <p className="text-xs">
-                  You&apos;ll receive {100 - Number(formData.founderShareBps) / 100}% of shares available for public
-                  sale
-                </p>
-              </div>
-            </div>
-
-            {/* Summary */}
-            {formData.fundingGoal && formData.founderShareBps && (
-              <div className="bg-base-200 rounded-lg p-3 mb-4 text-sm">
-                <p className="font-semibold mb-2">Summary:</p>
-                <div className="flex justify-between">
-                  <span className="text-base-content/60">Your shares (founder):</span>
-                  <span>
-                    {Number(formData.founderShareBps) / 100}% (=
-                    {((1_000_000 * Number(formData.founderShareBps)) / 10000).toLocaleString()} shares)
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-base-content/60">Public ICO shares:</span>
-                  <span>
-                    {100 - Number(formData.founderShareBps) / 100}% (=
-                    {((1_000_000 * (10000 - Number(formData.founderShareBps))) / 10000).toLocaleString()} shares)
-                  </span>
-                </div>
-                {formData.fundingGoal && (
-                  <div className="flex justify-between mt-1">
-                    <span className="text-base-content/60">ICO price per share:</span>
-                    <span>
-                      {(
-                        Number(formData.fundingGoal) /
-                        ((1_000_000 * (10000 - Number(formData.founderShareBps))) / 10000)
-                      ).toFixed(8)}{" "}
-                      ETH
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="modal-action">
-              <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>
-                Cancel
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleCreate}
-                disabled={
-                  isPending ||
-                  !formData.name ||
-                  !formData.ticker ||
-                  formData.ticker.length < 3 ||
-                  !formData.fundingGoal ||
-                  Number(formData.fundingGoal) <= 0
-                }
-              >
-                {isPending ? <span className="loading loading-spinner"></span> : "Create Pledge (0.01 ETH)"}
-              </button>
-            </div>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center py-16">
+            <span className="loading loading-spinner loading-lg text-[#FF007A]"></span>
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setIsModalOpen(false)}>close</button>
-          </form>
-        </dialog>
-      )}
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredSummaries.length === 0 && (
+          <div className="text-center py-16 card-pledge">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[rgba(255,0,122,0.08)] flex items-center justify-center">
+              <SparklesIcon className="h-12 w-12 text-[#FF007A]" />
+            </div>
+            <h3 className="text-h1 mb-2">No pledges yet</h3>
+            <p className="text-[#5E5E5E] mb-6">Be the first to create a pledge!</p>
+            {connectedAddress && (
+              <Link href="/pledges/create" className="btn-brand">
+                Create First Pledge
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* Pledge Grid - Uniswap Dark Style */}
+        {!isLoading && filteredSummaries.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSummaries.map(pledge => {
+              const progress = calculateProgress(pledge.totalRaised, pledge.fundingGoal);
+              const hasYield = pledge.vaultBalance > pledge.totalRaised;
+              const isFunding = pledge.status === PledgeStatus.Funding;
+              const isActive = pledge.status === PledgeStatus.Active;
+              
+              // Calculate floor price (vault / circulating supply)
+              const TOTAL_SUPPLY = BigInt(1_000_000) * BigInt(1e18);
+              const circulatingSupply = TOTAL_SUPPLY - pledge.treasuryShares;
+              const floorPrice = circulatingSupply > 0n
+                ? pledge.vaultBalance * BigInt(1e18) / circulatingSupply
+                : 0n;
+              
+              // Treasury recycling percentage
+              const treasuryPercent = Number(pledge.treasuryShares * 100n / TOTAL_SUPPLY);
+
+              return (
+                <Link
+                  key={pledge.address}
+                  href={`/pledges/${pledge.address}`}
+                  className="card-pledge p-6 hover:border-[#333333] transition-all group"
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <ProjectAvatar
+                        address={pledge.address as `0x${string}`}
+                        name={pledge.name}
+                        size="lg"
+                      />
+                      <div>
+                        <h2 className="text-h2 text-white group-hover:text-[#FF007A] transition-colors">
+                          {pledge.name}
+                        </h2>
+                        <span className="text-sm text-[#5E5E5E] font-mono">p{pledge.ticker}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      {isFunding && <IcoLockBadge />}
+                      {isActive && hasYield && (
+                        <span className="tag-success flex items-center gap-1">
+                          <SparklesIcon className="h-3 w-3" />
+                          Earning
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Price Display - Market Price dominant, Floor Price muted */}
+                  <div className="mb-4">
+                    <div className="text-label mb-1">Price</div>
+                    <div className="price-market">
+                      Ξ{formatEthValue(pledge.vaultBalance / (circulatingSupply / BigInt(1e18) || 1n))}
+                    </div>
+                    <div className="price-floor">
+                      Floor: Ξ{formatEthValue(floorPrice)}
+                    </div>
+                  </div>
+
+                  {/* Progress Bar (for funding) */}
+                  {isFunding && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="text-[#9B9B9B]">{formatEthValue(pledge.totalRaised)} ETH raised</span>
+                        <span className="text-[#5E5E5E]">{formatEthValue(pledge.fundingGoal)} ETH goal</span>
+                      </div>
+                      <div className="h-2 bg-[#1B1B1B] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#FF007A] to-[#27AE60] transition-all"
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-[#5E5E5E] text-xs">Founder Share</span>
+                      <p className="text-[#9B9B9B] font-medium">{formatBps(pledge.founderShareBps)}</p>
+                    </div>
+                    <div>
+                      <span className="text-[#5E5E5E] text-xs">
+                        {isFunding ? "Time Left" : "Status"}
+                      </span>
+                      <p className="text-[#9B9B9B] font-medium">
+                        {isFunding ? timeRemaining(pledge.deadline) : statusToString(pledge.status)}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[#5E5E5E] text-xs">Vault Balance</span>
+                      <p className="text-[#27AE60] font-mono font-medium">
+                        {formatEthValue(pledge.vaultBalance)} ETH
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[#5E5E5E] text-xs">Circulating</span>
+                      <p className="text-[#9B9B9B] font-mono font-medium">
+                        {(Number(circulatingSupply / BigInt(1e15)) / 1000).toFixed(2)}M
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Recycled Tag (if applicable) */}
+                  {treasuryPercent > 10 && (
+                    <div className="mt-4 pt-4 border-t border-[#222222]">
+                      <RecycledTag treasuryPercent={treasuryPercent} />
+                    </div>
+                  )}
+
+                  {/* Creator */}
+                  <div className="mt-4 pt-4 border-t border-[#222222]">
+                    <span className="text-[#5E5E5E] text-xs">Created by</span>
+                    <div className="mt-1">
+                      <Address address={pledge.creator} />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

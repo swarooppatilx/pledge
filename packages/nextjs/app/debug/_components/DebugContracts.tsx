@@ -33,27 +33,27 @@ export function DebugContracts() {
   }, [contractNames, selectedContract, setSelectedContract]);
 
   return (
-    <div className="flex flex-col gap-y-6 lg:gap-y-8 py-8 lg:py-12 justify-center items-center">
+    <div className="flex flex-col gap-y-6 lg:gap-y-8 py-8 lg:py-12 justify-center items-center px-6">
       {contractNames.length === 0 ? (
-        <p className="text-3xl mt-14">No contracts found!</p>
+        <p className="text-xl text-[#5E5E5E] mt-14">No contracts found!</p>
       ) : (
         <>
           {contractNames.length > 1 && (
-            <div className="flex flex-row gap-2 w-full max-w-7xl pb-1 px-6 lg:px-10 flex-wrap">
+            <div className="flex flex-row gap-2 w-full max-w-7xl pb-1 flex-wrap">
               {contractNames.map(contractName => (
                 <button
-                  className={`btn btn-secondary btn-sm font-light hover:border-transparent ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                     contractName === selectedContract
-                      ? "bg-base-300 hover:bg-base-300 no-animation"
-                      : "bg-base-100 hover:bg-secondary"
+                      ? "bg-[#FF007A] text-white"
+                      : "bg-[#1B1B1B] text-[#9B9B9B] hover:bg-[#222222] hover:text-white border border-[#222222]"
                   }`}
                   key={contractName}
                   onClick={() => setSelectedContract(contractName)}
                 >
                   {contractName}
                   {(contractsData[contractName] as GenericContract)?.external && (
-                    <span className="tooltip tooltip-top tooltip-accent" data-tip="External contract">
-                      <BarsArrowUpIcon className="h-4 w-4 cursor-pointer" />
+                    <span className="tooltip tooltip-top tooltip-accent ml-2" data-tip="External contract">
+                      <BarsArrowUpIcon className="h-4 w-4 cursor-pointer inline" />
                     </span>
                   )}
                 </button>

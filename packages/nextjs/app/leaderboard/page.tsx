@@ -81,18 +81,28 @@ const LeaderboardPage: NextPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold flex items-center justify-center gap-2">
-          <TrophyIcon className="h-10 w-10 text-warning" />
-          Leaderboard
-        </h1>
-        <p className="text-base-content/60 mt-2">Top performing pledges on the platform</p>
-      </div>
+      {/* Loading State - Full page spinner */}
+      {isLoading && (
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <span className="loading loading-spinner loading-lg text-[#FF007A]"></span>
+        </div>
+      )}
 
-      {/* Platform Stats */}
-      {stats && (
-        <div className="stats stats-vertical md:stats-horizontal shadow w-full mb-8 bg-base-100">
+      {/* Content - only show after loading */}
+      {!isLoading && (
+        <>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold flex items-center justify-center gap-2">
+              <TrophyIcon className="h-10 w-10 text-warning" />
+              Leaderboard
+            </h1>
+            <p className="text-base-content/60 mt-2">Top performing pledges on the platform</p>
+          </div>
+
+          {/* Platform Stats */}
+          {stats && (
+            <div className="stats stats-vertical md:stats-horizontal shadow w-full mb-8 bg-base-100">
           <div className="stat">
             <div className="stat-title">Total Pledges</div>
             <div className="stat-value">{stats.totalPledges}</div>
@@ -108,13 +118,6 @@ const LeaderboardPage: NextPage = () => {
             <div className="stat-value text-success">{Number(formatEther(stats.totalVaultValue)).toFixed(2)} ETH</div>
             <div className="stat-desc">Active pledges</div>
           </div>
-        </div>
-      )}
-
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex justify-center py-12">
-          <span className="loading loading-spinner loading-lg"></span>
         </div>
       )}
 
@@ -242,10 +245,13 @@ const LeaderboardPage: NextPage = () => {
                       {leaderboards.hotFunding.map((pledge, idx) => (
                         <tr key={pledge.pledge} className="hover">
                           <td>
-                            {idx === 0 && <span className="text-xl">🔥</span>}
-                            {idx === 1 && <span className="text-xl">🔥</span>}
-                            {idx === 2 && <span className="text-xl">🔥</span>}
-                            {idx > 2 && <span className="text-base-content/60">{idx + 1}</span>}
+                            {idx < 3 ? (
+                              <span className="w-6 h-6 rounded-full bg-[#FF007A] text-white text-xs flex items-center justify-center font-bold">
+                                {idx + 1}
+                              </span>
+                            ) : (
+                              <span className="text-[#5E5E5E]">{idx + 1}</span>
+                            )}
                           </td>
                           <td>
                             <Link href={`/pledges/${pledge.pledge}`} className="link link-hover">
@@ -320,6 +326,8 @@ const LeaderboardPage: NextPage = () => {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

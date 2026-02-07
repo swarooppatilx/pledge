@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     PledgeTreasury: {
-      address: "0xd9b4e184f567eb65dbb0e5ec30f3023ed08c3300",
+      address: "0x97fadd4f06a9f8d4e6a5a974a9e6002ba5e1685a",
       abi: [
         {
           type: "constructor",
@@ -286,10 +286,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 37359052,
+      deployedOnBlock: 37360995,
     },
     PledgeFactory: {
-      address: "0xd1ff89aea236acee99b9902d1345088c787a4dc5",
+      address: "0xf53dcb74a6b9fd436372a3c237eae6677835dbff",
       abi: [
         {
           type: "constructor",
@@ -884,7 +884,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 37359053,
+      deployedOnBlock: 37360996,
     },
   },
 } as const;
