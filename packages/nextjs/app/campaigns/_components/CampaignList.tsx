@@ -1,9 +1,11 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CampaignCard } from "./CampaignCard";
-import { useReadContract } from "wagmi";
-import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { Abi } from "viem";
+import { usePublicClient } from "wagmi";
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWatchContractEvent } from "~~/hooks/scaffold-eth";
 import { CampaignStatus } from "~~/utils/campaign";
 
 type CampaignDetails = readonly [
@@ -16,6 +18,7 @@ type CampaignDetails = readonly [
   string, // description
   bigint, // createdAt
   bigint, // contributorCount
+  string, // imageUrl
 ];
 
 type CampaignWithDetails = {
@@ -31,28 +34,93 @@ type CampaignListProps = {
 
 export const CampaignList = ({ statusFilter = "all", searchQuery = "", sortBy = "newest" }: CampaignListProps) => {
   const router = useRouter();
+  const publicClient = usePublicClient();
+  const [campaignsWithDetails, setCampaignsWithDetails] = useState<CampaignWithDetails[]>([]);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Get all campaign addresses from factory
-  const { data: campaignAddresses, isLoading: isLoadingAddresses } = useScaffoldReadContract({
+  const {
+    data: campaignAddresses,
+    isLoading: isLoadingAddresses,
+    refetch: refetchAddresses,
+  } = useScaffoldReadContract({
     contractName: "CampaignFactory",
     functionName: "getAllCampaigns",
     watch: true,
   });
 
-  // Get Campaign ABI from externalContracts
+  // Get Campaign ABI from deployedContracts
   const { data: campaignContractInfo } = useDeployedContractInfo({ contractName: "Campaign" });
 
-  // Fetch details for each campaign
-  const campaignsWithDetails = useCampaignDetails(
-    campaignAddresses as `0x${string}`[] | undefined,
-    campaignContractInfo?.abi,
-  );
+  // Watch for new campaign creation events - triggers automatic refresh
+  useScaffoldWatchContractEvent({
+    contractName: "CampaignFactory",
+    eventName: "CampaignCreated",
+    onLogs: logs => {
+      console.log("New campaign created:", logs);
+      refetchAddresses();
+      setRefreshTrigger(prev => prev + 1);
+    },
+  });
+
+  // Memoized fetch function
+  const fetchCampaignDetails = useCallback(async () => {
+    if (!campaignAddresses || campaignAddresses.length === 0 || !campaignContractInfo?.abi || !publicClient) {
+      setCampaignsWithDetails([]);
+      return;
+    }
+
+    setIsLoadingDetails(true);
+
+    try {
+      // Filter out the template campaign (title = "Template")
+      const results: CampaignWithDetails[] = [];
+
+      // Fetch details for each campaign
+      const detailsPromises = campaignAddresses.map(async address => {
+        try {
+          const details = await publicClient.readContract({
+            address: address as `0x${string}`,
+            abi: campaignContractInfo.abi as Abi,
+            functionName: "getCampaignDetails",
+          });
+          return { address, details: details as CampaignDetails };
+        } catch {
+          return null;
+        }
+      });
+
+      const allDetails = await Promise.all(detailsPromises);
+
+      for (const item of allDetails) {
+        if (item && item.details) {
+          // Filter out template campaign
+          if (item.details[5] !== "Template") {
+            results.push(item);
+          }
+        }
+      }
+
+      setCampaignsWithDetails(results);
+    } catch (error) {
+      console.error("Failed to fetch campaign details:", error);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  }, [campaignAddresses, campaignContractInfo?.abi, publicClient]);
+
+  // Fetch all campaign details using multicall pattern
+  useEffect(() => {
+    fetchCampaignDetails();
+
+    // Set up polling for updates (backup to events, less frequent)
+    const interval = setInterval(fetchCampaignDetails, 15000);
+    return () => clearInterval(interval);
+  }, [fetchCampaignDetails, refreshTrigger]);
 
   // Filter and sort campaigns
   const filteredCampaigns = filterAndSortCampaigns(campaignsWithDetails, statusFilter, searchQuery, sortBy);
-
-  // Check if we're still loading campaign details
-  const isLoadingDetails = campaignAddresses && campaignAddresses.length > 0 && campaignsWithDetails.length === 0;
 
   if (isLoadingAddresses || isLoadingDetails) {
     return (
@@ -62,7 +130,7 @@ export const CampaignList = ({ statusFilter = "all", searchQuery = "", sortBy = 
     );
   }
 
-  if (!campaignAddresses || campaignAddresses.length === 0) {
+  if (!campaignAddresses || campaignAddresses.length === 0 || campaignsWithDetails.length === 0) {
     return (
       <div className="text-center py-20">
         <h3 className="text-xl font-semibold mb-2">No campaigns yet</h3>
@@ -93,93 +161,13 @@ export const CampaignList = ({ statusFilter = "all", searchQuery = "", sortBy = 
           deadline={campaign.details[2]}
           status={campaign.details[4] as (typeof CampaignStatus)[keyof typeof CampaignStatus]}
           contributorCount={campaign.details[8]}
+          imageUrl={campaign.details[9] || undefined}
           onClick={() => router.push(`/campaigns/${campaign.address}`)}
         />
       ))}
     </div>
   );
 };
-
-// Custom hook to fetch campaign details
-function useCampaignDetails(
-  addresses: `0x${string}`[] | undefined,
-  abi: readonly unknown[] | undefined,
-): CampaignWithDetails[] {
-  const results: CampaignWithDetails[] = [];
-
-  // We need to fetch each campaign's details
-  // Using individual useReadContract calls for each campaign
-  const campaign0 = useReadContract({
-    address: addresses?.[0],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[0] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign1 = useReadContract({
-    address: addresses?.[1],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[1] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign2 = useReadContract({
-    address: addresses?.[2],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[2] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign3 = useReadContract({
-    address: addresses?.[3],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[3] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign4 = useReadContract({
-    address: addresses?.[4],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[4] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign5 = useReadContract({
-    address: addresses?.[5],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[5] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign6 = useReadContract({
-    address: addresses?.[6],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[6] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaign7 = useReadContract({
-    address: addresses?.[7],
-    abi: abi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[7] && !!abi, refetchInterval: 3000 },
-  });
-
-  const campaignResults = [campaign0, campaign1, campaign2, campaign3, campaign4, campaign5, campaign6, campaign7];
-
-  if (addresses) {
-    for (let i = 0; i < Math.min(addresses.length, 8); i++) {
-      if (campaignResults[i].data) {
-        results.push({
-          address: addresses[i],
-          details: campaignResults[i].data as CampaignDetails,
-        });
-      }
-    }
-  }
-
-  return results;
-}
 
 function filterAndSortCampaigns(
   campaigns: CampaignWithDetails[],

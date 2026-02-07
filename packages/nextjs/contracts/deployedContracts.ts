@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     YourContract: {
-      address: "0xb19b36b1456e65e3a6d514d3f715f204bd59f431",
+      address: "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
       abi: [
         {
           type: "constructor",
@@ -148,10 +148,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 9,
+      deployedOnBlock: 1,
     },
     CampaignFactory: {
-      address: "0x8ce361602b935680e8dec218b820ff5056beb7af",
+      address: "0xa15bb66138824a1c7167f5e85b957d04dd34e468",
       abi: [
         {
           type: "function",
@@ -217,6 +217,11 @@ const deployedContracts = {
             },
             {
               name: "_description",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_imageUrl",
               type: "string",
               internalType: "string",
             },
@@ -376,6 +381,11 @@ const deployedContracts = {
         },
         {
           type: "error",
+          name: "InvalidDescription",
+          inputs: [],
+        },
+        {
+          type: "error",
           name: "InvalidDuration",
           inputs: [],
         },
@@ -391,10 +401,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 10,
+      deployedOnBlock: 2,
     },
     Campaign: {
-      address: "0xe1aa25618fa0c7a1cfdab5d6b456af611873b629",
+      address: "0xb19b36b1456e65e3a6d514d3f715f204bd59f431",
       abi: [
         {
           type: "constructor",
@@ -424,8 +434,26 @@ const deployedContracts = {
               type: "string",
               internalType: "string",
             },
+            {
+              name: "_imageUrl",
+              type: "string",
+              internalType: "string",
+            },
           ],
           stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "MIN_CONTRIBUTION",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
         },
         {
           type: "function",
@@ -601,6 +629,11 @@ const deployedContracts = {
               type: "uint256",
               internalType: "uint256",
             },
+            {
+              name: "_imageUrl",
+              type: "string",
+              internalType: "string",
+            },
           ],
           stateMutability: "view",
         },
@@ -671,6 +704,19 @@ const deployedContracts = {
               name: "",
               type: "uint256",
               internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "imageUrl",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "string",
+              internalType: "string",
             },
           ],
           stateMutability: "view",
@@ -865,6 +911,11 @@ const deployedContracts = {
         },
         {
           type: "error",
+          name: "ContributionTooSmall",
+          inputs: [],
+        },
+        {
+          type: "error",
           name: "DeadlineNotPassed",
           inputs: [],
         },
@@ -905,7 +956,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 11,
+      deployedOnBlock: 2,
     },
   },
 } as const;

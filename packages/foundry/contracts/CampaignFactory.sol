@@ -27,6 +27,7 @@ contract CampaignFactory {
     error InvalidFundingGoal();
     error InvalidDuration();
     error InvalidTitle();
+    error InvalidDescription();
 
     // ============ External Functions ============
 
@@ -36,19 +37,22 @@ contract CampaignFactory {
      * @param _durationDays Campaign duration in days (1-365)
      * @param _title Campaign title
      * @param _description Campaign description
+     * @param _imageUrl Optional image URL for the campaign
      * @return campaignAddress Address of the newly created campaign
      */
     function createCampaign(
         uint256 _fundingGoal,
         uint256 _durationDays,
         string calldata _title,
-        string calldata _description
+        string calldata _description,
+        string calldata _imageUrl
     ) external returns (address campaignAddress) {
         if (_fundingGoal == 0) revert InvalidFundingGoal();
         if (_durationDays == 0 || _durationDays > 365) revert InvalidDuration();
         if (bytes(_title).length == 0) revert InvalidTitle();
+        if (bytes(_description).length == 0) revert InvalidDescription();
 
-        Campaign campaign = new Campaign(msg.sender, _fundingGoal, _durationDays, _title, _description);
+        Campaign campaign = new Campaign(msg.sender, _fundingGoal, _durationDays, _title, _description, _imageUrl);
 
         campaignAddress = address(campaign);
         campaigns.push(campaignAddress);

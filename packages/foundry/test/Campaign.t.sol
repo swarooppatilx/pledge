@@ -17,6 +17,7 @@ contract CampaignTest is Test {
     uint256 public constant DURATION_DAYS = 30;
     string public constant TITLE = "Test Campaign";
     string public constant DESCRIPTION = "A test crowdfunding campaign";
+    string public constant IMAGE_URL = "https://example.com/image.jpg";
 
     event ContributionMade(address indexed contributor, uint256 amount, uint256 totalRaised);
     event FundsWithdrawn(address indexed creator, uint256 amount);
@@ -35,7 +36,7 @@ contract CampaignTest is Test {
 
         // Create campaign through factory
         vm.prank(creator);
-        address campaignAddress = factory.createCampaign(FUNDING_GOAL, DURATION_DAYS, TITLE, DESCRIPTION);
+        address campaignAddress = factory.createCampaign(FUNDING_GOAL, DURATION_DAYS, TITLE, DESCRIPTION, IMAGE_URL);
         campaign = Campaign(payable(campaignAddress));
     }
 
@@ -55,23 +56,23 @@ contract CampaignTest is Test {
     function test_FactoryRejectsZeroFundingGoal() public {
         vm.prank(creator);
         vm.expectRevert(CampaignFactory.InvalidFundingGoal.selector);
-        factory.createCampaign(0, DURATION_DAYS, TITLE, DESCRIPTION);
+        factory.createCampaign(0, DURATION_DAYS, TITLE, DESCRIPTION, IMAGE_URL);
     }
 
     function test_FactoryRejectsInvalidDuration() public {
         vm.prank(creator);
         vm.expectRevert(CampaignFactory.InvalidDuration.selector);
-        factory.createCampaign(FUNDING_GOAL, 0, TITLE, DESCRIPTION);
+        factory.createCampaign(FUNDING_GOAL, 0, TITLE, DESCRIPTION, IMAGE_URL);
 
         vm.prank(creator);
         vm.expectRevert(CampaignFactory.InvalidDuration.selector);
-        factory.createCampaign(FUNDING_GOAL, 366, TITLE, DESCRIPTION);
+        factory.createCampaign(FUNDING_GOAL, 366, TITLE, DESCRIPTION, IMAGE_URL);
     }
 
     function test_FactoryRejectsEmptyTitle() public {
         vm.prank(creator);
         vm.expectRevert(CampaignFactory.InvalidTitle.selector);
-        factory.createCampaign(FUNDING_GOAL, DURATION_DAYS, "", DESCRIPTION);
+        factory.createCampaign(FUNDING_GOAL, DURATION_DAYS, "", DESCRIPTION, IMAGE_URL);
     }
 
     // ============ Campaign Initialization Tests ============
@@ -83,11 +84,19 @@ contract CampaignTest is Test {
         assertEq(uint256(campaign.status()), uint256(Campaign.CampaignStatus.Active));
         assertEq(campaign.title(), TITLE);
         assertEq(campaign.description(), DESCRIPTION);
+        assertEq(campaign.imageUrl(), IMAGE_URL);
     }
 
     function test_CampaignDeadlineIsSet() public view {
         uint256 expectedDeadline = block.timestamp + (DURATION_DAYS * 1 days);
         assertEq(campaign.deadline(), expectedDeadline);
+    }
+
+    function test_CampaignWithEmptyImageUrl() public {
+        vm.prank(creator);
+        address campaignAddr = factory.createCampaign(FUNDING_GOAL, DURATION_DAYS, TITLE, DESCRIPTION, "");
+        Campaign campaignNoImage = Campaign(payable(campaignAddr));
+        assertEq(campaignNoImage.imageUrl(), "");
     }
 
     // ============ Contribution Tests ============
@@ -366,7 +375,8 @@ contract CampaignTest is Test {
             string memory _title,
             string memory _description,
             uint256 _createdAt,
-            uint256 _contributorCount
+            uint256 _contributorCount,
+            string memory _imageUrl
         ) = campaign.getCampaignDetails();
 
         assertEq(_creator, creator);
@@ -378,6 +388,7 @@ contract CampaignTest is Test {
         assertEq(_description, DESCRIPTION);
         assertGt(_createdAt, 0);
         assertEq(_contributorCount, 1);
+        assertEq(_imageUrl, IMAGE_URL);
     }
 
     function test_GetContributors() public {
@@ -398,9 +409,9 @@ contract CampaignTest is Test {
     function test_GetCampaignsPaginated() public {
         // Create more campaigns
         vm.startPrank(creator);
-        factory.createCampaign(1 ether, 10, "Campaign 2", "Desc 2");
-        factory.createCampaign(2 ether, 20, "Campaign 3", "Desc 3");
-        factory.createCampaign(3 ether, 30, "Campaign 4", "Desc 4");
+        factory.createCampaign(1 ether, 10, "Campaign 2", "Desc 2", "");
+        factory.createCampaign(2 ether, 20, "Campaign 3", "Desc 3", "");
+        factory.createCampaign(3 ether, 30, "Campaign 4", "Desc 4", "");
         vm.stopPrank();
 
         // Get first 2 campaigns
@@ -419,5 +430,49 @@ contract CampaignTest is Test {
     function test_GetCampaignsPaginatedWithInvalidOffset() public view {
         address[] memory result = factory.getCampaignsPaginated(100, 10);
         assertEq(result.length, 0);
+    }
+
+    // ============ New Edge Case Tests ============
+
+    function test_ContributeAfterGoalReached() public {
+        // Reach the goal
+        vm.prank(backer1);
+        campaign.contribute{ value: FUNDING_GOAL }();
+        assertEq(uint256(campaign.status()), uint256(Campaign.CampaignStatus.Successful));
+
+        // Should still be able to contribute (overfunding)
+        vm.prank(backer2);
+        campaign.contribute{ value: 5 ether }();
+
+        assertEq(campaign.totalRaised(), FUNDING_GOAL + 5 ether);
+        assertEq(campaign.getContribution(backer2), 5 ether);
+    }
+
+    function test_ContributeFailsIfCancelled() public {
+        vm.prank(creator);
+        campaign.cancel();
+
+        vm.prank(backer1);
+        vm.expectRevert(Campaign.CampaignNotActive.selector);
+        campaign.contribute{ value: 1 ether }();
+    }
+
+    function test_ContributeFailsBelowMinimum() public {
+        vm.prank(backer1);
+        vm.expectRevert(Campaign.ContributionTooSmall.selector);
+        campaign.contribute{ value: 0.0001 ether }();
+    }
+
+    function test_MinimumContributionAccepted() public {
+        vm.prank(backer1);
+        campaign.contribute{ value: 0.001 ether }();
+
+        assertEq(campaign.getContribution(backer1), 0.001 ether);
+    }
+
+    function test_FactoryRejectsEmptyDescription() public {
+        vm.prank(creator);
+        vm.expectRevert(CampaignFactory.InvalidDescription.selector);
+        factory.createCampaign(FUNDING_GOAL, DURATION_DAYS, TITLE, "", IMAGE_URL);
     }
 }

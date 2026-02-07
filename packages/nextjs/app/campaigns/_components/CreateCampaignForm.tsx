@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { EtherInput } from "@scaffold-ui/components";
 import { parseEther } from "viem";
+import { PhotoIcon } from "@heroicons/react/24/outline";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { withTransactionNotification } from "~~/hooks/useTransactionNotification";
 import { type CreateCampaignInput, createCampaignSchema } from "~~/utils/campaign";
 
 type CreateCampaignFormProps = {
@@ -19,8 +22,10 @@ export const CreateCampaignForm = ({ onSuccess, onCancel }: CreateCampaignFormPr
     description: "",
     fundingGoal: "",
     durationDays: 30,
+    imageUrl: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [imagePreviewError, setImagePreviewError] = useState(false);
 
   const { writeContractAsync, isPending } = useScaffoldWriteContract({
     contractName: "CampaignFactory",
@@ -47,16 +52,26 @@ export const CreateCampaignForm = ({ onSuccess, onCancel }: CreateCampaignFormPr
 
     if (!validateForm()) return;
 
-    try {
-      await writeContractAsync({
-        functionName: "createCampaign",
-        args: [parseEther(formData.fundingGoal), BigInt(formData.durationDays), formData.title, formData.description],
-      });
+    const txResult = await withTransactionNotification(
+      "Creating campaign...",
+      "Campaign created successfully! 🎉",
+      "Failed to create campaign",
+      () =>
+        writeContractAsync({
+          functionName: "createCampaign",
+          args: [
+            parseEther(formData.fundingGoal),
+            BigInt(formData.durationDays),
+            formData.title,
+            formData.description,
+            formData.imageUrl || "",
+          ],
+        }),
+    );
 
+    if (txResult) {
       onSuccess?.();
       router.push("/campaigns");
-    } catch (error) {
-      console.error("Failed to create campaign:", error);
     }
   };
 
@@ -130,6 +145,48 @@ export const CreateCampaignForm = ({ onSuccess, onCancel }: CreateCampaignFormPr
         <label className="label">
           <span className="label-text-alt">Between 1 and 365 days</span>
           {errors.durationDays && <span className="label-text-alt text-error">{errors.durationDays}</span>}
+        </label>
+      </div>
+
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text font-semibold">Campaign Image URL (optional)</span>
+        </label>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <input
+              type="url"
+              placeholder="https://example.com/image.jpg"
+              className={`input input-bordered w-full ${errors.imageUrl ? "input-error" : ""}`}
+              value={formData.imageUrl || ""}
+              onChange={e => {
+                setFormData({ ...formData, imageUrl: e.target.value });
+                setImagePreviewError(false);
+              }}
+            />
+            {errors.imageUrl && (
+              <label className="label">
+                <span className="label-text-alt text-error">{errors.imageUrl}</span>
+              </label>
+            )}
+          </div>
+          <div className="w-24 h-24 bg-base-200 rounded-lg flex items-center justify-center overflow-hidden">
+            {formData.imageUrl && !imagePreviewError ? (
+              <Image
+                src={formData.imageUrl}
+                alt="Campaign preview"
+                width={96}
+                height={96}
+                className="object-cover w-full h-full"
+                onError={() => setImagePreviewError(true)}
+              />
+            ) : (
+              <PhotoIcon className="h-8 w-8 text-base-content/30" />
+            )}
+          </div>
+        </div>
+        <label className="label">
+          <span className="label-text-alt">Add an image to make your campaign stand out</span>
         </label>
       </div>
 

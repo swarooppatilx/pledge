@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ContributorList } from "./_components";
 import { Address } from "@scaffold-ui/components";
 import { formatEther, parseEther } from "viem";
 import { hardhat } from "viem/chains";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PhotoIcon, ShareIcon } from "@heroicons/react/24/outline";
 import { useDeployedContractInfo, useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { withTransactionNotification } from "~~/hooks/useTransactionNotification";
 import { CampaignStatus, contributeSchema, getStatusColor, getStatusLabel } from "~~/utils/campaign";
 import { notification } from "~~/utils/scaffold-eth";
 
@@ -71,10 +74,21 @@ export default function CampaignDetailPage() {
     string, // description
     bigint, // createdAt
     bigint, // contributorCount
+    string, // imageUrl
   ];
 
-  const [creator, fundingGoal, deadline, totalRaised, status, title, description, createdAt, contributorCount] =
-    details;
+  const [
+    creator,
+    fundingGoal,
+    deadline,
+    totalRaised,
+    status,
+    title,
+    description,
+    createdAt,
+    contributorCount,
+    imageUrl,
+  ] = details;
 
   const progress = fundingGoal > 0n ? Number((totalRaised * 100n) / fundingGoal) : 0;
   const deadlineDate = new Date(Number(deadline) * 1000);
@@ -93,84 +107,91 @@ export default function CampaignDetailPage() {
       return;
     }
 
-    try {
-      await writeContractAsync({
-        address: campaignAddress,
-        abi: campaignAbi,
-        functionName: "contribute",
-        value: parseEther(contributeAmount),
-      });
+    const txResult = await withTransactionNotification(
+      `Contributing ${contributeAmount} ETH...`,
+      "Contribution successful! 🎉",
+      "Contribution failed",
+      () =>
+        writeContractAsync({
+          address: campaignAddress,
+          abi: campaignAbi,
+          functionName: "contribute",
+          value: parseEther(contributeAmount),
+        }),
+    );
+
+    if (txResult) {
       setContributeAmount("");
-      notification.success("Contribution successful!");
       refetch();
-    } catch (error) {
-      console.error("Contribution failed:", error);
-      notification.error("Contribution failed");
     }
   };
 
   const handleWithdraw = async () => {
     if (!campaignAbi) return;
-    try {
-      await writeContractAsync({
-        address: campaignAddress,
-        abi: campaignAbi,
-        functionName: "withdraw",
-      });
-      notification.success("Withdrawal successful!");
-      refetch();
-    } catch (error) {
-      console.error("Withdrawal failed:", error);
-      notification.error("Withdrawal failed");
-    }
+    const txResult = await withTransactionNotification(
+      "Withdrawing funds...",
+      "Withdrawal successful! 💰",
+      "Withdrawal failed",
+      () =>
+        writeContractAsync({
+          address: campaignAddress,
+          abi: campaignAbi,
+          functionName: "withdraw",
+        }),
+    );
+
+    if (txResult) refetch();
   };
 
   const handleRefund = async () => {
     if (!campaignAbi) return;
-    try {
-      await writeContractAsync({
-        address: campaignAddress,
-        abi: campaignAbi,
-        functionName: "refund",
-      });
-      notification.success("Refund claimed!");
-      refetch();
-    } catch (error) {
-      console.error("Refund failed:", error);
-      notification.error("Refund failed");
-    }
+    const txResult = await withTransactionNotification(
+      "Claiming refund...",
+      "Refund claimed! 💸",
+      "Refund failed",
+      () =>
+        writeContractAsync({
+          address: campaignAddress,
+          abi: campaignAbi,
+          functionName: "refund",
+        }),
+    );
+
+    if (txResult) refetch();
   };
 
   const handleFinalize = async () => {
     if (!campaignAbi) return;
-    try {
-      await writeContractAsync({
-        address: campaignAddress,
-        abi: campaignAbi,
-        functionName: "finalize",
-      });
-      notification.success("Campaign finalized!");
-      refetch();
-    } catch (error) {
-      console.error("Finalize failed:", error);
-      notification.error("Finalize failed");
-    }
+    const txResult = await withTransactionNotification(
+      "Finalizing campaign...",
+      "Campaign finalized! ✅",
+      "Finalize failed",
+      () =>
+        writeContractAsync({
+          address: campaignAddress,
+          abi: campaignAbi,
+          functionName: "finalize",
+        }),
+    );
+
+    if (txResult) refetch();
   };
 
   const handleCancel = async () => {
     if (!campaignAbi) return;
-    try {
-      await writeContractAsync({
-        address: campaignAddress,
-        abi: campaignAbi,
-        functionName: "cancel",
-      });
-      notification.success("Campaign cancelled!");
-      refetch();
-    } catch (error) {
-      console.error("Cancel failed:", error);
-      notification.error("Cancel failed");
-    }
+    const txResult = await withTransactionNotification(
+      "Cancelling campaign...",
+      "Campaign cancelled",
+      "Cancel failed",
+      () =>
+        writeContractAsync({
+          address: campaignAddress,
+          abi: campaignAbi,
+          functionName: "cancel",
+        }),
+    );
+
+    if (txResult) refetch();
   };
 
   return (
@@ -184,14 +205,46 @@ export default function CampaignDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Campaign Image */}
+          {imageUrl ? (
+            <div className="card bg-base-100 shadow-xl overflow-hidden">
+              <figure className="relative h-64 md:h-80">
+                <Image src={imageUrl} alt={title} fill className="object-cover" />
+              </figure>
+            </div>
+          ) : (
+            <div className="card bg-base-100 shadow-xl overflow-hidden">
+              <figure className="h-48 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                <PhotoIcon className="h-20 w-20 text-base-content/20" />
+              </figure>
+            </div>
+          )}
+
           {/* Title & Status */}
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
               <div className="flex justify-between items-start flex-wrap gap-4">
                 <h1 className="text-3xl font-bold">{title}</h1>
-                <span className={`badge badge-lg ${getStatusColor(currentStatus)}`}>
-                  {getStatusLabel(currentStatus)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="btn btn-ghost btn-sm btn-circle"
+                    onClick={() => {
+                      const url = window.location.href;
+                      if (navigator.share) {
+                        navigator.share({ title, text: description, url });
+                      } else {
+                        navigator.clipboard.writeText(url);
+                        notification.success("Link copied to clipboard!");
+                      }
+                    }}
+                    title="Share campaign"
+                  >
+                    <ShareIcon className="h-5 w-5" />
+                  </button>
+                  <span className={`badge badge-lg ${getStatusColor(currentStatus)}`}>
+                    {getStatusLabel(currentStatus)}
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 text-base-content/60 mt-2">
@@ -261,6 +314,9 @@ export default function CampaignDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Contributors List */}
+          <ContributorList campaignAddress={campaignAddress} />
         </div>
 
         {/* Sidebar Actions */}

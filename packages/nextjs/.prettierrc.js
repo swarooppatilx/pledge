@@ -1,9 +1,12 @@
-module.exports = {
+/** @type {import("prettier").Config} */
+const config = {
   arrowParens: "avoid",
   printWidth: 120,
   tabWidth: 2,
   trailingComma: "all",
   importOrder: ["^react$", "^next/(.*)$", "<THIRD_PARTY_MODULES>", "^@heroicons/(.*)$", "^~~/(.*)$"],
   importOrderSortSpecifiers: true,
-  plugins: [require.resolve("@trivago/prettier-plugin-sort-imports")],
+  plugins: ["@trivago/prettier-plugin-sort-imports"],
 };
+
+module.exports = config;

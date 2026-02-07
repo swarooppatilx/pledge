@@ -32,7 +32,8 @@ contract DeployCampaignFactory is ScaffoldETHDeploy {
             1 ether, // dummy funding goal
             1, // 1 day duration
             "Template", // dummy title
-            "ABI Template" // dummy description
+            "ABI Template", // dummy description
+            "" // empty image URL
         );
     }
 }

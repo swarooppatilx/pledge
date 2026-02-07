@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { formatEther } from "viem";
+import { PhotoIcon } from "@heroicons/react/24/outline";
 import { CampaignStatus, getStatusColor, getStatusLabel } from "~~/utils/campaign";
 
 type CampaignStatusType = (typeof CampaignStatus)[keyof typeof CampaignStatus];
@@ -14,6 +16,7 @@ type CampaignCardProps = {
   deadline: bigint;
   status: CampaignStatusType;
   contributorCount: bigint;
+  imageUrl?: string;
   onClick?: () => void;
 };
 
@@ -25,6 +28,7 @@ export const CampaignCard = ({
   deadline,
   status,
   contributorCount,
+  imageUrl,
   onClick,
 }: CampaignCardProps) => {
   const progress = fundingGoal > 0n ? Number((totalRaised * 100n) / fundingGoal) : 0;
@@ -34,6 +38,16 @@ export const CampaignCard = ({
 
   return (
     <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer" onClick={onClick}>
+      {/* Campaign Image */}
+      {imageUrl ? (
+        <figure className="h-40 relative">
+          <Image src={imageUrl} alt={title} fill className="object-cover" />
+        </figure>
+      ) : (
+        <figure className="h-40 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+          <PhotoIcon className="h-16 w-16 text-base-content/20" />
+        </figure>
+      )}
       <div className="card-body">
         <div className="flex justify-between items-start">
           <h2 className="card-title text-lg line-clamp-1">{title}</h2>

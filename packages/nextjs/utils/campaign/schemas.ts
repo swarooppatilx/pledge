@@ -42,6 +42,7 @@ export const createCampaignSchema = z.object({
     .int("Duration must be a whole number")
     .min(1, "Duration must be at least 1 day")
     .max(365, "Duration must be at most 365 days"),
+  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
 });
 
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;

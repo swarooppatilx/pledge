@@ -27,6 +27,7 @@ contract Campaign is ReentrancyGuard {
     uint256 public immutable createdAt;
     string public title;
     string public description;
+    string public imageUrl;
 
     // ============ Mutable State Variables ============
 
@@ -54,6 +55,7 @@ contract Campaign is ReentrancyGuard {
     error DeadlineNotPassed();
     error NotCreator();
     error ZeroContribution();
+    error ContributionTooSmall();
     error NoContribution();
     error TransferFailed();
     error InvalidParameters();
@@ -89,13 +91,15 @@ contract Campaign is ReentrancyGuard {
      * @param _durationDays Campaign duration in days
      * @param _title Campaign title
      * @param _description Campaign description
+     * @param _imageUrl Optional image URL for the campaign
      */
     constructor(
         address _creator,
         uint256 _fundingGoal,
         uint256 _durationDays,
         string memory _title,
-        string memory _description
+        string memory _description,
+        string memory _imageUrl
     ) {
         if (_creator == address(0)) revert InvalidParameters();
         if (_fundingGoal == 0) revert InvalidParameters();
@@ -108,17 +112,26 @@ contract Campaign is ReentrancyGuard {
         createdAt = block.timestamp;
         title = _title;
         description = _description;
+        imageUrl = _imageUrl;
         status = CampaignStatus.Active;
     }
+
+    // ============ Constants ============
+
+    uint256 public constant MIN_CONTRIBUTION = 0.001 ether;
 
     // ============ External Functions ============
 
     /**
      * @notice Contribute ETH to the campaign
-     * @dev Contributions only allowed while campaign is Active and before deadline
+     * @dev Contributions allowed before deadline. Overfunding is permitted (like Kickstarter).
+     *      Campaign becomes Successful when goal is first reached but contributions continue.
      */
-    function contribute() external payable onlyActive onlyBeforeDeadline nonReentrant {
+    function contribute() external payable onlyBeforeDeadline nonReentrant {
+        // Can't contribute if cancelled
+        if (status == CampaignStatus.Cancelled) revert CampaignNotActive();
         if (msg.value == 0) revert ZeroContribution();
+        if (msg.value < MIN_CONTRIBUTION) revert ContributionTooSmall();
 
         // Effects
         if (!hasContributed[msg.sender]) {
@@ -130,8 +143,8 @@ contract Campaign is ReentrancyGuard {
 
         emit ContributionMade(msg.sender, msg.value, totalRaised);
 
-        // Check if goal is reached
-        if (totalRaised >= fundingGoal) {
+        // Mark as successful when goal is first reached (but keep accepting contributions)
+        if (status == CampaignStatus.Active && totalRaised >= fundingGoal) {
             status = CampaignStatus.Successful;
             emit CampaignStatusUpdated(CampaignStatus.Successful);
         }
@@ -256,6 +269,7 @@ contract Campaign is ReentrancyGuard {
      * @return _description Campaign description
      * @return _createdAt Campaign creation timestamp
      * @return _contributorCount Number of unique contributors
+     * @return _imageUrl Campaign image URL
      */
     function getCampaignDetails()
         external
@@ -269,10 +283,22 @@ contract Campaign is ReentrancyGuard {
             string memory _title,
             string memory _description,
             uint256 _createdAt,
-            uint256 _contributorCount
+            uint256 _contributorCount,
+            string memory _imageUrl
         )
     {
-        return (creator, fundingGoal, deadline, totalRaised, status, title, description, createdAt, contributors.length);
+        return (
+            creator,
+            fundingGoal,
+            deadline,
+            totalRaised,
+            status,
+            title,
+            description,
+            createdAt,
+            contributors.length,
+            imageUrl
+        );
     }
 
     /**
