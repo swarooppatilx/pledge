@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowTrendingDownIcon, ArrowTrendingUpIcon, MinusIcon } from "@heroicons/react/24/outline";
 import { Address } from "@scaffold-ui/components";
+import { ArrowTrendingDownIcon, ArrowTrendingUpIcon, MinusIcon } from "@heroicons/react/24/outline";
 
 type FounderShareCardProps = {
   founderAddress: `0x${string}`;
@@ -39,40 +39,37 @@ export const FounderShareCard = ({
               <span className="loading loading-spinner loading-sm text-[#FF007A]"></span>
             ) : (
               <>
-                <span className="text-h2 font-mono text-white">
-                  {currentPercentage.toFixed(2)}%
-                </span>
+                <span className="text-h2 font-mono text-white">{currentPercentage.toFixed(2)}%</span>
                 {previousPercentage !== currentPercentage && (
-                  <span className="text-xs text-[#5E5E5E] font-mono">
-                    was {previousPercentage.toFixed(2)}%
-                  </span>
+                  <span className="text-xs text-[#5E5E5E] font-mono">was {previousPercentage.toFixed(2)}%</span>
                 )}
               </>
             )}
           </div>
         </div>
-        
+
         {/* Trend Indicator */}
         {trend !== "neutral" && !isLoading && (
           <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${trendBg}`}>
             <TrendIcon className={`h-4 w-4 ${trendColor}`} />
             <span className={`text-xs font-mono ${trendColor}`}>
-              {changeAmount > 0 ? "+" : ""}{changeAmount.toFixed(2)}%
+              {changeAmount > 0 ? "+" : ""}
+              {changeAmount.toFixed(2)}%
             </span>
           </div>
         )}
       </div>
-      
+
       {/* Founder Address */}
       <div className="flex items-center gap-2 text-xs">
         <span className="text-[#5E5E5E]">Founder:</span>
         <Address address={founderAddress} format="short" />
       </div>
-      
+
       {/* Progress Bar */}
       <div className="mt-3">
         <div className="h-2 bg-[#1B1B1B] rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-[#FF007A] to-[#FF5CAA] rounded-full transition-all duration-500"
             style={{ width: `${Math.min(currentPercentage, 100)}%` }}
           />

@@ -6,14 +6,10 @@ import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
 import { formatEther } from "viem";
 import { useAccount } from "wagmi";
-import {
-  ArrowPathIcon,
-  PlusIcon,
-  SparklesIcon,
-} from "@heroicons/react/24/outline";
-import { StatBanner, ProjectAvatar, IcoLockBadge, RecycledTag, FilterTabs } from "~~/components/ui";
+import { ArrowPathIcon, PlusIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { FilterTabs, IcoLockBadge, ProjectAvatar, RecycledTag, StatBanner } from "~~/components/ui";
 import { useAllPledgeSummaries } from "~~/hooks/usePledge";
-import { calculateProgress, formatBps, statusToString, timeRemaining, PledgeStatus } from "~~/types/pledge";
+import { PledgeStatus, calculateProgress, formatBps, statusToString, timeRemaining } from "~~/types/pledge";
 
 // Helper to format ETH values with reasonable precision
 const formatEthValue = (value: bigint, decimals: number = 6): string => {
@@ -47,7 +43,8 @@ const PledgesPage: NextPage = () => {
   const filteredSummaries = summaries.filter(pledge => {
     if (activeFilter === "all") return true;
     if (activeFilter === "new") return pledge.status === PledgeStatus.Funding;
-    if (activeFilter === "yield") return pledge.status === PledgeStatus.Active && pledge.vaultBalance > pledge.totalRaised;
+    if (activeFilter === "yield")
+      return pledge.status === PledgeStatus.Active && pledge.vaultBalance > pledge.totalRaised;
     if (activeFilter === "governance") return pledge.status === PledgeStatus.Active;
     return true;
   });
@@ -62,10 +59,7 @@ const PledgesPage: NextPage = () => {
             <p className="text-[#5E5E5E]">Discover and invest in equity-backed startups</p>
           </div>
           {connectedAddress && (
-            <Link
-              href="/pledges/create"
-              className="btn-brand flex items-center gap-2"
-            >
+            <Link href="/pledges/create" className="btn-brand flex items-center gap-2">
               <PlusIcon className="h-5 w-5" />
               Create Pledge
             </Link>
@@ -75,8 +69,18 @@ const PledgesPage: NextPage = () => {
         {/* Stat Banner */}
         <StatBanner
           items={[
-            { label: "Total Raised", value: `${formatEthValue(totalRaised)} ETH`, trend: `${summaries.length} pledges`, trendType: "neutral" },
-            { label: "Vault TVL", value: `${formatEthValue(totalVaultValue)} ETH`, trend: "Earning yield", trendType: "positive" },
+            {
+              label: "Total Raised",
+              value: `${formatEthValue(totalRaised)} ETH`,
+              trend: `${summaries.length} pledges`,
+              trendType: "neutral",
+            },
+            {
+              label: "Vault TVL",
+              value: `${formatEthValue(totalVaultValue)} ETH`,
+              trend: "Earning yield",
+              trendType: "positive",
+            },
             { label: "Active Projects", value: String(activePledges), trend: "Trading live", trendType: "positive" },
           ]}
           className="mb-8"
@@ -84,11 +88,7 @@ const PledgesPage: NextPage = () => {
 
         {/* Filter Tabs */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <FilterTabs
-            tabs={FILTER_TABS}
-            activeTab={activeFilter}
-            onChange={setActiveFilter}
-          />
+          <FilterTabs tabs={FILTER_TABS} activeTab={activeFilter} onChange={setActiveFilter} />
           <button
             onClick={() => refetch()}
             className="text-[#5E5E5E] hover:text-white transition-colors flex items-center gap-1 text-sm"
@@ -129,16 +129,14 @@ const PledgesPage: NextPage = () => {
               const hasYield = pledge.vaultBalance > pledge.totalRaised;
               const isFunding = pledge.status === PledgeStatus.Funding;
               const isActive = pledge.status === PledgeStatus.Active;
-              
+
               // Calculate floor price (vault / circulating supply)
               const TOTAL_SUPPLY = BigInt(1_000_000) * BigInt(1e18);
               const circulatingSupply = TOTAL_SUPPLY - pledge.treasuryShares;
-              const floorPrice = circulatingSupply > 0n
-                ? pledge.vaultBalance * BigInt(1e18) / circulatingSupply
-                : 0n;
-              
+              const floorPrice = circulatingSupply > 0n ? (pledge.vaultBalance * BigInt(1e18)) / circulatingSupply : 0n;
+
               // Treasury recycling percentage
-              const treasuryPercent = Number(pledge.treasuryShares * 100n / TOTAL_SUPPLY);
+              const treasuryPercent = Number((pledge.treasuryShares * 100n) / TOTAL_SUPPLY);
 
               return (
                 <Link
@@ -149,11 +147,7 @@ const PledgesPage: NextPage = () => {
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <ProjectAvatar
-                        address={pledge.address as `0x${string}`}
-                        name={pledge.name}
-                        size="lg"
-                      />
+                      <ProjectAvatar address={pledge.address as `0x${string}`} name={pledge.name} size="lg" />
                       <div>
                         <h2 className="text-h2 text-white group-hover:text-[#FF007A] transition-colors">
                           {pledge.name}
@@ -178,9 +172,7 @@ const PledgesPage: NextPage = () => {
                     <div className="price-market">
                       Ξ{formatEthValue(pledge.vaultBalance / (circulatingSupply / BigInt(1e18) || 1n))}
                     </div>
-                    <div className="price-floor">
-                      Floor: Ξ{formatEthValue(floorPrice)}
-                    </div>
+                    <div className="price-floor">Floor: Ξ{formatEthValue(floorPrice)}</div>
                   </div>
 
                   {/* Progress Bar (for funding) */}
@@ -206,18 +198,14 @@ const PledgesPage: NextPage = () => {
                       <p className="text-[#9B9B9B] font-medium">{formatBps(pledge.founderShareBps)}</p>
                     </div>
                     <div>
-                      <span className="text-[#5E5E5E] text-xs">
-                        {isFunding ? "Time Left" : "Status"}
-                      </span>
+                      <span className="text-[#5E5E5E] text-xs">{isFunding ? "Time Left" : "Status"}</span>
                       <p className="text-[#9B9B9B] font-medium">
                         {isFunding ? timeRemaining(pledge.deadline) : statusToString(pledge.status)}
                       </p>
                     </div>
                     <div>
                       <span className="text-[#5E5E5E] text-xs">Vault Balance</span>
-                      <p className="text-[#27AE60] font-mono font-medium">
-                        {formatEthValue(pledge.vaultBalance)} ETH
-                      </p>
+                      <p className="text-[#27AE60] font-mono font-medium">{formatEthValue(pledge.vaultBalance)} ETH</p>
                     </div>
                     <div>
                       <span className="text-[#5E5E5E] text-xs">Circulating</span>
@@ -238,7 +226,7 @@ const PledgesPage: NextPage = () => {
                   <div className="mt-4 pt-4 border-t border-[#222222]">
                     <span className="text-[#5E5E5E] text-xs">Created by</span>
                     <div className="mt-1">
-                      <Address address={pledge.creator} />
+                      <Address address={pledge.creator} disableAddressLink />
                     </div>
                   </div>
                 </Link>

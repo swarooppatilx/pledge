@@ -28,4 +28,3 @@ export { ProjectAvatar, IdenticonPlaceholder } from "./ProjectAvatar";
 
 // Badges & Status Indicators
 export { IcoLockBadge, RedeemWarning, RecycledTag, StatusBadge, Tooltip } from "./Badges";
-

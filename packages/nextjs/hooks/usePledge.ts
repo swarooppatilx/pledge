@@ -151,7 +151,7 @@ export const useCreatePledge = () => {
         params.durationDays,
         params.founderShareBps,
       ],
-      value: 10000000000000000n, // 0.01 ETH listing tax
+      value: 1000000000000000n, // 0.001 ETH listing tax
     });
     return tx;
   };
@@ -337,6 +337,26 @@ export const useFinalizeICO = () => {
 };
 
 /**
+ * Cancel campaign (creator only)
+ * Can only be called during Funding phase before goal is reached
+ */
+export const useCancelCampaign = () => {
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const cancel = async (pledgeAddress: `0x${string}`) => {
+    const tx = await writeContractAsync({
+      address: pledgeAddress,
+      abi: PledgeAbi,
+      functionName: "cancelCampaign",
+    });
+    return tx;
+  };
+
+  return { cancel, isPending, isConfirming, isSuccess, hash };
+};
+
+/**
  * Harvest yield (80% to holders, 20% to protocol)
  */
 export const useHarvestYield = () => {
@@ -492,7 +512,11 @@ export const useFounderShare = (tokenAddress: `0x${string}`, creatorAddress: `0x
   const TOTAL_SUPPLY = BigInt(1_000_000) * BigInt(1e18);
 
   // Get founder's current token balance
-  const { data: founderBalance, isLoading, refetch } = useReadContract({
+  const {
+    data: founderBalance,
+    isLoading,
+    refetch,
+  } = useReadContract({
     address: tokenAddress,
     abi: PledgeTokenAbi,
     functionName: "balanceOf",
@@ -516,12 +540,17 @@ export const useFounderShare = (tokenAddress: `0x${string}`, creatorAddress: `0x
 
   // Calculate trend
   const prevPct = previousPercentage.current ?? currentPercentage;
-  const trend: "up" | "down" | "neutral" = currentPercentage > prevPct ? "up" : currentPercentage < prevPct ? "down" : "neutral";
+  const trend: "up" | "down" | "neutral" =
+    currentPercentage > prevPct ? "up" : currentPercentage < prevPct ? "down" : "neutral";
   const changeAmount = currentPercentage - prevPct;
 
   // Update previous when there's a real change
   useEffect(() => {
-    if (founderBalance !== undefined && previousBalance.current !== null && previousBalance.current !== currentBalance) {
+    if (
+      founderBalance !== undefined &&
+      previousBalance.current !== null &&
+      previousBalance.current !== currentBalance
+    ) {
       previousBalance.current = currentBalance;
       previousPercentage.current = currentPercentage;
     }
@@ -537,4 +566,3 @@ export const useFounderShare = (tokenAddress: `0x${string}`, creatorAddress: `0x
     refetch,
   };
 };
-

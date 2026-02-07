@@ -89,8 +89,12 @@ contract Pledge is Initializable, ReentrancyGuard {
     enum Status {
         Funding,
         Active,
-        Failed
+        Failed,
+        Cancelled
     }
+
+    /// @notice Whether the campaign has been cancelled by creator
+    bool public cancelled;
 
     /// @notice Project creator
     address public creator;
@@ -140,6 +144,7 @@ contract Pledge is Initializable, ReentrancyGuard {
     event Contributed(address indexed contributor, uint256 amount, uint256 sharesReceived);
     event GoalReached(uint256 totalRaised);
     event ICOFailed(uint256 totalRaised);
+    event CampaignCancelled(address indexed creator, uint256 totalRaised);
     event Refunded(address indexed contributor, uint256 amount);
     event YieldHarvested(uint256 holderYield, uint256 protocolSpread);
     event DividendDeposited(address indexed depositor, uint256 amount);
@@ -166,6 +171,9 @@ contract Pledge is Initializable, ReentrancyGuard {
     error AlreadyInitialized();
     error InsufficientTreasuryStock();
     error SlippageExceeded();
+    error ZeroAddress();
+    error NotCancellable();
+    error AlreadyCancelled();
 
     // ============ Constructor (Implementation Lock) ============
 
@@ -207,7 +215,7 @@ contract Pledge is Initializable, ReentrancyGuard {
     ) external initializer {
         if (_founderShareBps > 9900) revert InvalidShare(); // Max 99%
         if (_fundingGoal == 0) revert ZeroAmount();
-        if (_creator == address(0)) revert TransferFailed();
+        if (_creator == address(0)) revert ZeroAddress();
 
         creator = _creator;
         name = _name;
@@ -248,6 +256,9 @@ contract Pledge is Initializable, ReentrancyGuard {
      * @notice Get current share market status
      */
     function status() public view returns (Status) {
+        if (cancelled) {
+            return Status.Cancelled;
+        }
         if (totalRaised >= fundingGoal) {
             return Status.Active;
         } else if (block.timestamp >= deadline) {
@@ -347,6 +358,25 @@ contract Pledge is Initializable, ReentrancyGuard {
         if (block.timestamp >= deadline && totalRaised < fundingGoal) {
             emit ICOFailed(totalRaised);
         }
+    }
+
+    /**
+     * @notice Cancel the campaign (creator only)
+     * @dev Can only be called during Funding phase before goal is reached
+     *      After cancellation, contributors can claim refunds
+     */
+    function cancelCampaign() external {
+        if (msg.sender != creator) revert NotCreator();
+        if (cancelled) revert AlreadyCancelled();
+
+        // Can only cancel if still in funding phase
+        Status currentStatus = status();
+        if (currentStatus != Status.Funding) revert NotCancellable();
+
+        // Mark as cancelled
+        cancelled = true;
+
+        emit CampaignCancelled(msg.sender, totalRaised);
     }
 
     // ============ Creator Functions ============
@@ -521,11 +551,12 @@ contract Pledge is Initializable, ReentrancyGuard {
     // ============ Refund Functions ============
 
     /**
-     * @notice Refund contribution if ICO failed
+     * @notice Refund contribution if ICO failed or was cancelled
      * @dev Also recycles any shares the user received back to treasury
      */
     function refund() external nonReentrant {
-        if (status() != Status.Failed) revert NotFailed();
+        Status currentStatus = status();
+        if (currentStatus != Status.Failed && currentStatus != Status.Cancelled) revert NotFailed();
 
         uint256 contribution = contributions[msg.sender];
         if (contribution == 0) revert NoContribution();

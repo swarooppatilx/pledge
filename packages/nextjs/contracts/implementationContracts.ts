@@ -171,6 +171,26 @@ export const PledgeAbi = [
   },
   {
     type: "function",
+    name: "cancelCampaign",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "cancelled",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "claimRewards",
     inputs: [],
     outputs: [],
@@ -687,6 +707,25 @@ export const PledgeAbi = [
   },
   {
     type: "event",
+    name: "CampaignCancelled",
+    inputs: [
+      {
+        name: "creator",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "totalRaised",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "Contributed",
     inputs: [
       {
@@ -933,6 +972,11 @@ export const PledgeAbi = [
   },
   {
     type: "error",
+    name: "AlreadyCancelled",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "AlreadyInitialized",
     inputs: [],
   },
@@ -983,6 +1027,11 @@ export const PledgeAbi = [
   },
   {
     type: "error",
+    name: "NotCancellable",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "NotCreator",
     inputs: [],
   },
@@ -1019,6 +1068,11 @@ export const PledgeAbi = [
   {
     type: "error",
     name: "TransferFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ZeroAddress",
     inputs: [],
   },
   {

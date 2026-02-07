@@ -33,7 +33,7 @@ contract PledgeTest is Test {
     address contributor2;
     address contributor3;
 
-    uint256 constant LISTING_TAX = 0.01 ether;
+    uint256 constant LISTING_TAX = 0.001 ether;
     uint256 constant GOAL = 10 ether;
     uint256 constant DURATION_DAYS = 30;
     uint256 constant FOUNDER_SHARE_BPS = 5100; // 51%
@@ -247,8 +247,7 @@ contract PledgeTest is Test {
         // Should have hit goal exactly
         assertEq(m.totalRaised(), 1 ether, "Goal should be exactly met");
 
-        // Contributor should have received 0.3 ETH refund
-        uint256 expectedRefund = 0.3 ether;
+        // Contributor should have received 0.3 ETH refund (only accepted 0.7 ETH)
         assertApproxEqAbs(contributor1.balance, balanceBefore - 0.7 ether, 0.001 ether, "Should refund excess");
 
         // Status should be Active
@@ -446,6 +445,92 @@ contract PledgeTest is Test {
         assertEq(uint256(m.status()), uint256(Pledge.Status.Failed));
 
         // Get refund
+        uint256 balanceBefore = contributor1.balance;
+
+        vm.prank(contributor1);
+        m.refund();
+
+        // Should have received refund
+        assertApproxEqAbs(contributor1.balance - balanceBefore, 5 ether, 0.01 ether);
+    }
+
+    // ============ Campaign Cancellation Tests ============
+
+    function test_CancelCampaign() public {
+        vm.prank(creator);
+        address market = factory.createPledge{ value: LISTING_TAX }(
+            "Cancel Corp", "CNCL", "A test venture to cancel", "", GOAL, DURATION_DAYS, FOUNDER_SHARE_BPS
+        );
+
+        Pledge m = Pledge(payable(market));
+
+        // Contribute some ETH
+        vm.prank(contributor1);
+        m.contribute{ value: 5 ether }();
+
+        // Should be in funding status
+        assertEq(uint256(m.status()), uint256(Pledge.Status.Funding));
+
+        // Creator cancels the campaign
+        vm.prank(creator);
+        m.cancelCampaign();
+
+        // Should now be cancelled
+        assertEq(uint256(m.status()), uint256(Pledge.Status.Cancelled));
+    }
+
+    function test_CancelCampaign_OnlyCreator() public {
+        vm.prank(creator);
+        address market = factory.createPledge{ value: LISTING_TAX }(
+            "Cancel Corp", "CNCL", "", "", GOAL, DURATION_DAYS, FOUNDER_SHARE_BPS
+        );
+
+        Pledge m = Pledge(payable(market));
+
+        // Non-creator cannot cancel
+        vm.prank(contributor1);
+        vm.expectRevert(Pledge.NotCreator.selector);
+        m.cancelCampaign();
+    }
+
+    function test_CancelCampaign_NotAfterGoalReached() public {
+        vm.prank(creator);
+        address market = factory.createPledge{ value: LISTING_TAX }(
+            "Cancel Corp", "CNCL", "", "", GOAL, DURATION_DAYS, FOUNDER_SHARE_BPS
+        );
+
+        Pledge m = Pledge(payable(market));
+
+        // Fund fully
+        vm.prank(contributor1);
+        m.contribute{ value: GOAL }();
+
+        // Should be active
+        assertEq(uint256(m.status()), uint256(Pledge.Status.Active));
+
+        // Creator cannot cancel after goal reached
+        vm.prank(creator);
+        vm.expectRevert(Pledge.NotCancellable.selector);
+        m.cancelCampaign();
+    }
+
+    function test_RefundAfterCancellation() public {
+        vm.prank(creator);
+        address market = factory.createPledge{ value: LISTING_TAX }(
+            "Cancel Corp", "CNCL", "", "", GOAL, DURATION_DAYS, FOUNDER_SHARE_BPS
+        );
+
+        Pledge m = Pledge(payable(market));
+
+        // Contribute some ETH
+        vm.prank(contributor1);
+        m.contribute{ value: 5 ether }();
+
+        // Creator cancels
+        vm.prank(creator);
+        m.cancelCampaign();
+
+        // Contributor can get refund
         uint256 balanceBefore = contributor1.balance;
 
         vm.prank(contributor1);

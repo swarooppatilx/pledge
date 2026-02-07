@@ -26,8 +26,8 @@ contract PledgeFactory {
 
     // ============ Constants ============
 
-    /// @notice Listing tax: 0.01 ETH per project
-    uint256 public constant LISTING_TAX = 0.01 ether;
+    /// @notice Listing tax: 0.001 ETH per project
+    uint256 public constant LISTING_TAX = 0.001 ether;
 
     // ============ Immutables ============
 

@@ -18,9 +18,7 @@ const AboutPage: NextPage = () => {
       {/* Hero */}
       <section className="pt-16 pb-12 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-[40px] font-semibold text-white mb-4">
-            Pledge Protocol
-          </h1>
+          <h1 className="text-[40px] font-semibold text-white mb-4">Pledge Protocol</h1>
           <p className="text-xl text-[#9B9B9B] mb-4">Decentralized Stock Exchange for Startups</p>
           <p className="text-[#5E5E5E] max-w-2xl mx-auto">
             Equity-based crowdfunding with Aave-backed yields. Every share is an asset-backed claim on the treasury with
@@ -41,7 +39,8 @@ const AboutPage: NextPage = () => {
               </div>
               <h3 className="text-lg font-medium text-white mb-2">1. Create a Pledge</h3>
               <p className="text-[#5E5E5E] text-sm">
-                Founders create a pledge with a funding goal and deadline. Set your desired founder share and launch your ICO.
+                Founders create a pledge with a funding goal and deadline. Set your desired founder share and launch
+                your ICO.
               </p>
             </div>
 
@@ -61,8 +60,8 @@ const AboutPage: NextPage = () => {
               </div>
               <h3 className="text-lg font-medium text-white mb-2">3. Earn Rewards</h3>
               <p className="text-[#5E5E5E] text-sm">
-                ETH is deposited into Aave to generate yield. Shareholders earn passive yield and dividends from
-                the business.
+                ETH is deposited into Aave to generate yield. Shareholders earn passive yield and dividends from the
+                business.
               </p>
             </div>
           </div>
@@ -131,9 +130,7 @@ const AboutPage: NextPage = () => {
                 Phase 1
               </span>
               <h3 className="font-medium text-white mb-2">Funding</h3>
-              <p className="text-xs text-[#5E5E5E]">
-                ICO is open. Contributors receive shares based on contribution.
-              </p>
+              <p className="text-xs text-[#5E5E5E]">ICO is open. Contributors receive shares based on contribution.</p>
             </div>
 
             <div className="text-2xl text-[#333333] hidden md:block">→</div>
@@ -143,9 +140,7 @@ const AboutPage: NextPage = () => {
                 Phase 2
               </span>
               <h3 className="font-medium text-white mb-2">Active</h3>
-              <p className="text-xs text-[#5E5E5E]">
-                Goal reached! Shares tradeable. Yield and dividends flow.
-              </p>
+              <p className="text-xs text-[#5E5E5E]">Goal reached! Shares tradeable. Yield and dividends flow.</p>
             </div>
 
             <div className="text-2xl text-[#333333] hidden md:block">or</div>
@@ -155,9 +150,7 @@ const AboutPage: NextPage = () => {
                 Failed
               </span>
               <h3 className="font-medium text-white mb-2">Refund</h3>
-              <p className="text-xs text-[#5E5E5E]">
-                Deadline passed. Contributors claim full refund.
-              </p>
+              <p className="text-xs text-[#5E5E5E]">Deadline passed. Contributors claim full refund.</p>
             </div>
           </div>
         </div>
@@ -230,9 +223,7 @@ const AboutPage: NextPage = () => {
             <div className="card-pledge p-6 text-center">
               <ShieldCheckIcon className="h-10 w-10 text-[#27AE60] mx-auto mb-3" />
               <h3 className="font-medium text-white mb-2">Minimal Proxies</h3>
-              <p className="text-xs text-[#5E5E5E]">
-                EIP-1167 clones for gas-efficient, battle-tested deployments
-              </p>
+              <p className="text-xs text-[#5E5E5E]">EIP-1167 clones for gas-efficient, battle-tested deployments</p>
             </div>
           </div>
         </div>

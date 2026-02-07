@@ -9,6 +9,7 @@ export enum PledgeStatus {
   Funding = 0,
   Active = 1,
   Failed = 2,
+  Cancelled = 3,
 }
 
 // ============ Core Types ============
@@ -65,6 +66,8 @@ export const statusToString = (status: PledgeStatus): string => {
       return "Active";
     case PledgeStatus.Failed:
       return "Failed";
+    case PledgeStatus.Cancelled:
+      return "Cancelled";
     default:
       return "Unknown";
   }
@@ -78,6 +81,8 @@ export const statusToColor = (status: PledgeStatus): string => {
       return "badge-success";
     case PledgeStatus.Failed:
       return "badge-error";
+    case PledgeStatus.Cancelled:
+      return "badge-neutral";
     default:
       return "badge-neutral";
   }
@@ -126,6 +131,8 @@ export const getPhaseColor = (phase: number): string => {
       return "badge-success";
     case PledgeStatus.Failed:
       return "badge-error";
+    case PledgeStatus.Cancelled:
+      return "badge-neutral";
     default:
       return "badge-neutral";
   }
@@ -139,6 +146,8 @@ export const getPhaseLabel = (phase: number): string => {
       return "Active";
     case PledgeStatus.Failed:
       return "Failed";
+    case PledgeStatus.Cancelled:
+      return "Cancelled";
     default:
       return "Unknown";
   }
