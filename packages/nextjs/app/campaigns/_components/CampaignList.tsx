@@ -3,9 +3,8 @@
 import { useRouter } from "next/navigation";
 import { CampaignCard } from "./CampaignCard";
 import { useReadContract } from "wagmi";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 import { CampaignStatus } from "~~/utils/campaign";
-import { CampaignAbi } from "~~/utils/campaign/campaignAbi";
 
 type CampaignDetails = readonly [
   `0x${string}`, // creator
@@ -37,15 +36,25 @@ export const CampaignList = ({ statusFilter = "all", searchQuery = "", sortBy = 
   const { data: campaignAddresses, isLoading: isLoadingAddresses } = useScaffoldReadContract({
     contractName: "CampaignFactory",
     functionName: "getAllCampaigns",
+    watch: true,
   });
 
+  // Get Campaign ABI from externalContracts
+  const { data: campaignContractInfo } = useDeployedContractInfo({ contractName: "Campaign" });
+
   // Fetch details for each campaign
-  const campaignsWithDetails = useCampaignDetails(campaignAddresses as `0x${string}`[] | undefined, CampaignAbi);
+  const campaignsWithDetails = useCampaignDetails(
+    campaignAddresses as `0x${string}`[] | undefined,
+    campaignContractInfo?.abi,
+  );
 
   // Filter and sort campaigns
   const filteredCampaigns = filterAndSortCampaigns(campaignsWithDetails, statusFilter, searchQuery, sortBy);
 
-  if (isLoadingAddresses) {
+  // Check if we're still loading campaign details
+  const isLoadingDetails = campaignAddresses && campaignAddresses.length > 0 && campaignsWithDetails.length === 0;
+
+  if (isLoadingAddresses || isLoadingDetails) {
     return (
       <div className="flex justify-center items-center py-20">
         <span className="loading loading-spinner loading-lg"></span>
@@ -92,7 +101,10 @@ export const CampaignList = ({ statusFilter = "all", searchQuery = "", sortBy = 
 };
 
 // Custom hook to fetch campaign details
-function useCampaignDetails(addresses: `0x${string}`[] | undefined, abi: readonly unknown[]): CampaignWithDetails[] {
+function useCampaignDetails(
+  addresses: `0x${string}`[] | undefined,
+  abi: readonly unknown[] | undefined,
+): CampaignWithDetails[] {
   const results: CampaignWithDetails[] = [];
 
   // We need to fetch each campaign's details
@@ -101,56 +113,56 @@ function useCampaignDetails(addresses: `0x${string}`[] | undefined, abi: readonl
     address: addresses?.[0],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[0] },
+    query: { enabled: !!addresses?.[0] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign1 = useReadContract({
     address: addresses?.[1],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[1] },
+    query: { enabled: !!addresses?.[1] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign2 = useReadContract({
     address: addresses?.[2],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[2] },
+    query: { enabled: !!addresses?.[2] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign3 = useReadContract({
     address: addresses?.[3],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[3] },
+    query: { enabled: !!addresses?.[3] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign4 = useReadContract({
     address: addresses?.[4],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[4] },
+    query: { enabled: !!addresses?.[4] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign5 = useReadContract({
     address: addresses?.[5],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[5] },
+    query: { enabled: !!addresses?.[5] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign6 = useReadContract({
     address: addresses?.[6],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[6] },
+    query: { enabled: !!addresses?.[6] && !!abi, refetchInterval: 3000 },
   });
 
   const campaign7 = useReadContract({
     address: addresses?.[7],
     abi: abi,
     functionName: "getCampaignDetails",
-    query: { enabled: !!addresses?.[7] },
+    query: { enabled: !!addresses?.[7] && !!abi, refetchInterval: 3000 },
   });
 
   const campaignResults = [campaign0, campaign1, campaign2, campaign3, campaign4, campaign5, campaign6, campaign7];

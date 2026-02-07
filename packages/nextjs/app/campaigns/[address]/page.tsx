@@ -8,9 +8,8 @@ import { formatEther, parseEther } from "viem";
 import { hardhat } from "viem/chains";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { useDeployedContractInfo, useTargetNetwork } from "~~/hooks/scaffold-eth";
 import { CampaignStatus, contributeSchema, getStatusColor, getStatusLabel } from "~~/utils/campaign";
-import { CampaignAbi } from "~~/utils/campaign/campaignAbi";
 import { notification } from "~~/utils/scaffold-eth";
 
 type CampaignStatusType = (typeof CampaignStatus)[keyof typeof CampaignStatus];
@@ -24,6 +23,10 @@ export default function CampaignDetailPage() {
   const [contributeAmount, setContributeAmount] = useState("");
   const [contributeError, setContributeError] = useState("");
 
+  // Get Campaign ABI from externalContracts
+  const { data: campaignContractInfo } = useDeployedContractInfo({ contractName: "Campaign" });
+  const campaignAbi = campaignContractInfo?.abi;
+
   // Read campaign details
   const {
     data: campaignDetails,
@@ -31,23 +34,24 @@ export default function CampaignDetailPage() {
     refetch,
   } = useReadContract({
     address: campaignAddress,
-    abi: CampaignAbi,
+    abi: campaignAbi,
     functionName: "getCampaignDetails",
+    query: { enabled: !!campaignAbi },
   });
 
   // Read user's contribution
   const { data: userContribution } = useReadContract({
     address: campaignAddress,
-    abi: CampaignAbi,
+    abi: campaignAbi,
     functionName: "getContribution",
     args: [userAddress],
-    query: { enabled: !!userAddress },
+    query: { enabled: !!campaignAbi && !!userAddress },
   });
 
   // Write contract hook
   const { writeContractAsync, isPending } = useWriteContract();
 
-  if (isLoading || !campaignDetails) {
+  if (isLoading || !campaignDetails || !campaignAbi) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center py-20">
@@ -81,6 +85,7 @@ export default function CampaignDetailPage() {
   const currentStatus = status as CampaignStatusType;
 
   const handleContribute = async () => {
+    if (!campaignAbi) return;
     setContributeError("");
     const result = contributeSchema.safeParse({ amount: contributeAmount });
     if (!result.success) {
@@ -91,7 +96,7 @@ export default function CampaignDetailPage() {
     try {
       await writeContractAsync({
         address: campaignAddress,
-        abi: CampaignAbi,
+        abi: campaignAbi,
         functionName: "contribute",
         value: parseEther(contributeAmount),
       });
@@ -105,10 +110,11 @@ export default function CampaignDetailPage() {
   };
 
   const handleWithdraw = async () => {
+    if (!campaignAbi) return;
     try {
       await writeContractAsync({
         address: campaignAddress,
-        abi: CampaignAbi,
+        abi: campaignAbi,
         functionName: "withdraw",
       });
       notification.success("Withdrawal successful!");
@@ -120,10 +126,11 @@ export default function CampaignDetailPage() {
   };
 
   const handleRefund = async () => {
+    if (!campaignAbi) return;
     try {
       await writeContractAsync({
         address: campaignAddress,
-        abi: CampaignAbi,
+        abi: campaignAbi,
         functionName: "refund",
       });
       notification.success("Refund claimed!");
@@ -135,10 +142,11 @@ export default function CampaignDetailPage() {
   };
 
   const handleFinalize = async () => {
+    if (!campaignAbi) return;
     try {
       await writeContractAsync({
         address: campaignAddress,
-        abi: CampaignAbi,
+        abi: campaignAbi,
         functionName: "finalize",
       });
       notification.success("Campaign finalized!");
@@ -150,10 +158,11 @@ export default function CampaignDetailPage() {
   };
 
   const handleCancel = async () => {
+    if (!campaignAbi) return;
     try {
       await writeContractAsync({
         address: campaignAddress,
-        abi: CampaignAbi,
+        abi: campaignAbi,
         functionName: "cancel",
       });
       notification.success("Campaign cancelled!");
