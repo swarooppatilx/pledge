@@ -23,7 +23,7 @@ const getContractData = async (address: Address) => {
   // Check if this address is a known contract
   const deployedContractsOnChain = contracts[chainId];
   let isKnownContract = false;
-  
+
   for (const [, contractInfo] of Object.entries(deployedContractsOnChain)) {
     if (contractInfo.address.toLowerCase() === address.toLowerCase()) {
       isKnownContract = true;
@@ -43,14 +43,14 @@ const getContractData = async (address: Address) => {
     });
 
     const bytecode = await client.getBytecode({ address });
-    
+
     if (!bytecode) {
       return null;
     }
 
-    return { 
+    return {
       bytecode: bytecode.slice(2), // Remove 0x prefix
-      assembly: "Assembly not available in production build" 
+      assembly: "Assembly not available in production build",
     };
   } catch (error) {
     console.error("Failed to fetch bytecode:", error);

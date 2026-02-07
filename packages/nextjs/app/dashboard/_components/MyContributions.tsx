@@ -1,202 +1,132 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatEther } from "viem";
-import { Abi } from "viem";
-import { usePublicClient } from "wagmi";
-import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-import { CampaignStatus, getStatusColor, getStatusLabel } from "~~/utils/campaign";
-
-type CampaignStatusType = (typeof CampaignStatus)[keyof typeof CampaignStatus];
-
-type CampaignDetails = readonly [
-  `0x${string}`, // creator
-  bigint, // fundingGoal
-  bigint, // deadline
-  bigint, // totalRaised
-  number, // status
-  string, // title
-  string, // description
-  bigint, // createdAt
-  bigint, // contributorCount
-];
-
-type ContributionData = {
-  address: string;
-  details: CampaignDetails;
-  contribution: bigint;
-};
+import { useReadContracts } from "wagmi";
+import { PledgeTokenAbi } from "~~/contracts/implementationContracts";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { getPhaseColor, getPhaseLabel } from "~~/types/pledge";
 
 type MyContributionsProps = {
   userAddress: `0x${string}`;
-  onCampaignClick: (address: string) => void;
+  onPledgeClick: (address: string) => void;
 };
 
-export const MyContributions = ({ userAddress, onCampaignClick }: MyContributionsProps) => {
-  const publicClient = usePublicClient();
-  const [contributions, setContributions] = useState<ContributionData[]>([]);
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-
-  // Get all campaigns
-  const { data: allCampaigns, isLoading: isLoadingCampaigns } = useScaffoldReadContract({
-    contractName: "CampaignFactory",
-    functionName: "getAllCampaigns",
+export const MyContributions = ({ userAddress, onPledgeClick }: MyContributionsProps) => {
+  const { data: allSummaries, isLoading: summariesLoading } = useScaffoldReadContract({
+    contractName: "PledgeFactory",
+    functionName: "getAllSummaries",
     watch: true,
   });
 
-  const { data: campaignContractInfo } = useDeployedContractInfo({ contractName: "Campaign" });
+  // Build contract calls to check user's balance for each pledge's token
+  const tokenBalanceCalls =
+    allSummaries?.map(pledge => ({
+      address: pledge.token as `0x${string}`,
+      abi: PledgeTokenAbi,
+      functionName: "balanceOf",
+      args: [userAddress],
+    })) ?? [];
 
-  // Check each campaign for user's contribution
-  useEffect(() => {
-    const fetchContributions = async () => {
-      if (!allCampaigns || allCampaigns.length === 0 || !campaignContractInfo?.abi || !publicClient) {
-        setContributions([]);
-        return;
-      }
+  const { data: balances, isLoading: balancesLoading } = useReadContracts({
+    contracts: tokenBalanceCalls,
+    query: {
+      enabled: !!allSummaries && allSummaries.length > 0,
+    },
+  });
 
-      setIsLoadingDetails(true);
-      try {
-        const contributionPromises = allCampaigns.map(async address => {
-          try {
-            const [details, contribution] = await Promise.all([
-              publicClient.readContract({
-                address: address as `0x${string}`,
-                abi: campaignContractInfo.abi as Abi,
-                functionName: "getCampaignDetails",
-              }),
-              publicClient.readContract({
-                address: address as `0x${string}`,
-                abi: campaignContractInfo.abi as Abi,
-                functionName: "getContribution",
-                args: [userAddress],
-              }),
-            ]);
+  const isLoading = summariesLoading || balancesLoading;
 
-            const contrib = contribution as bigint;
-            if (contrib > 0n) {
-              return {
-                address,
-                details: details as CampaignDetails,
-                contribution: contrib,
-              };
-            }
-            return null;
-          } catch {
-            return null;
-          }
-        });
+  // Filter pledges where user has a non-zero balance
+  const myHoldings =
+    allSummaries
+      ?.filter((_, index) => {
+        const balance = balances?.[index]?.result as bigint | undefined;
+        return balance && balance > 0n;
+      })
+      .map(pledge => {
+        // Find the correct balance for this pledge
+        const balanceIndex = allSummaries?.indexOf(pledge);
+        const balance = (balances?.[balanceIndex ?? 0]?.result as bigint) ?? 0n;
+        return { ...pledge, userBalance: balance };
+      }) ?? [];
 
-        const results = await Promise.all(contributionPromises);
-        setContributions(results.filter((r): r is NonNullable<typeof r> => r !== null));
-      } finally {
-        setIsLoadingDetails(false);
-      }
-    };
-
-    fetchContributions();
-  }, [allCampaigns, campaignContractInfo?.abi, publicClient, userAddress]);
-
-  if (isLoadingCampaigns || isLoadingDetails) {
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20">
+      <div className="flex justify-center items-center py-12">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }
 
-  if (contributions.length === 0) {
+  if (myHoldings.length === 0) {
     return (
-      <div className="text-center py-20 bg-base-200 rounded-box">
-        <h3 className="text-xl font-semibold mb-2">No contributions yet</h3>
-        <p className="text-base-content/60 mb-4">Back a campaign to get started</p>
+      <div className="card bg-base-200">
+        <div className="card-body items-center text-center">
+          <h3 className="text-lg font-semibold mb-2">No Holdings</h3>
+          <p className="text-base-content/60">You don&apos;t hold shares in any pledges yet.</p>
+          <p className="text-sm text-base-content/40 mt-2">Contribute to a pledge to receive shares!</p>
+        </div>
       </div>
     );
   }
 
-  // Calculate summary stats
-  const totalContributed = contributions.reduce((sum, c) => sum + c.contribution, 0n);
-  const refundable = contributions.filter(
-    c => c.details[4] === CampaignStatus.Failed || c.details[4] === CampaignStatus.Cancelled,
-  );
-  const refundableAmount = refundable.reduce((sum, c) => sum + c.contribution, 0n);
-
   return (
-    <div className="space-y-6">
-      {/* Stats */}
-      <div className="stats stats-vertical md:stats-horizontal shadow w-full bg-base-100">
-        <div className="stat">
-          <div className="stat-title">Campaigns Backed</div>
-          <div className="stat-value">{contributions.length}</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Total Contributed</div>
-          <div className="stat-value text-primary">{formatEther(totalContributed)} ETH</div>
-        </div>
-        <div className="stat">
-          <div className="stat-title">Refundable</div>
-          <div className="stat-value text-warning">{formatEther(refundableAmount)} ETH</div>
-          <div className="stat-desc">{refundable.length} campaign(s)</div>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {myHoldings.map(pledge => {
+        const totalSupply = BigInt(1_000_000) * BigInt(1e18);
+        const circulatingSupply = totalSupply - pledge.treasuryShares;
+        const ownershipPercent =
+          circulatingSupply > 0n ? Number((pledge.userBalance * 10000n) / circulatingSupply) / 100 : 0;
+        const redeemableValue =
+          circulatingSupply > 0n ? (pledge.userBalance * pledge.vaultBalance) / circulatingSupply : 0n;
 
-      {/* Contribution List */}
-      <div className="overflow-x-auto">
-        <table className="table table-zebra bg-base-100">
-          <thead>
-            <tr>
-              <th>Campaign</th>
-              <th>Status</th>
-              <th>Your Contribution</th>
-              <th>Progress</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contributions.map(({ address, details, contribution }) => {
-              const [, fundingGoal, deadline, raised, status, title] = details;
-              const progress = fundingGoal > 0n ? Number((raised * 100n) / fundingGoal) : 0;
-              const isExpired = Date.now() > Number(deadline) * 1000;
-              const canRefund = status === CampaignStatus.Failed || status === CampaignStatus.Cancelled;
+        return (
+          <div
+            key={pledge.pledge}
+            className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-shadow"
+            onClick={() => onPledgeClick(pledge.pledge)}
+          >
+            <div className="card-body">
+              <div className="flex justify-between items-start">
+                <h3 className="card-title text-lg">{pledge.name || "Untitled Pledge"}</h3>
+                <span className={`badge ${getPhaseColor(pledge.status)}`}>{getPhaseLabel(pledge.status)}</span>
+              </div>
 
-              return (
-                <tr key={address} className="hover cursor-pointer" onClick={() => onCampaignClick(address)}>
-                  <td>
-                    <div className="font-medium">{title}</div>
-                    <div className="text-xs text-base-content/50 font-mono">
-                      {address.slice(0, 8)}...{address.slice(-6)}
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`badge ${getStatusColor(status as CampaignStatusType)}`}>
-                      {status === CampaignStatus.Active && isExpired
-                        ? "Awaiting Finalization"
-                        : getStatusLabel(status as CampaignStatusType)}
-                    </span>
-                  </td>
-                  <td className="font-semibold">{formatEther(contribution)} ETH</td>
-                  <td>
-                    <div className="flex flex-col">
-                      <span className="text-sm">{progress}% funded</span>
-                      <progress
-                        className={`progress w-24 ${progress >= 100 ? "progress-success" : "progress-primary"}`}
-                        value={Math.min(progress, 100)}
-                        max="100"
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    {canRefund ? (
-                      <span className="badge badge-warning">Claim Refund</span>
-                    ) : (
-                      <button className="btn btn-ghost btn-sm">View</button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              <p className="text-sm text-base-content/60">{pledge.ticker ? `$p${pledge.ticker}` : "No ticker"}</p>
+
+              {/* User's Position */}
+              <div className="bg-primary/10 rounded-lg p-3 mt-4">
+                <p className="text-xs text-base-content/60 mb-2">Your Position</p>
+                <div className="flex justify-between">
+                  <span className="text-sm">Shares:</span>
+                  <span className="font-semibold">{Number(pledge.userBalance / BigInt(1e18)).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Ownership:</span>
+                  <span className="font-semibold">{ownershipPercent.toFixed(2)}%</span>
+                </div>
+                <div className="flex justify-between text-success">
+                  <span className="text-sm">Value:</span>
+                  <span className="font-semibold">{formatEther(redeemableValue)} ETH</span>
+                </div>
+              </div>
+
+              <div className="divider my-2"></div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-base-content/60">Vault Balance</span>
+                  <p className="font-semibold text-success">{formatEther(pledge.vaultBalance)} ETH</p>
+                </div>
+                <div>
+                  <span className="text-xs text-base-content/60">Circulating</span>
+                  <p className="font-semibold">{Number(circulatingSupply / BigInt(1e18)).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

@@ -237,12 +237,82 @@ function main() {
     });
   });
 
+  // Add contracts from deployments.json that weren't found in broadcast transactions
+  // This handles contracts created via factory patterns (CALL instead of CREATE)
+  Object.entries(deployments).forEach(([chainId, chainDeployments]) => {
+    if (!allGeneratedContracts[chainId]) {
+      allGeneratedContracts[chainId] = {};
+    }
+
+    Object.entries(chainDeployments).forEach(([address, contractName]) => {
+      // Skip the networkName metadata entry
+      if (address === "networkName") return;
+
+      // Check if this contract is already in allGeneratedContracts
+      const existingContract = Object.values(
+        allGeneratedContracts[chainId] || {}
+      ).find((c) => c.address?.toLowerCase() === address.toLowerCase());
+
+      if (!existingContract) {
+        // Contract not found in broadcast - try to load its ABI from artifacts
+        const artifact = getArtifactOfContract(contractName);
+        if (artifact) {
+          allGeneratedContracts[chainId][contractName] = {
+            address: address,
+            abi: artifact.abi,
+            inheritedFunctions: getInheritedFunctions(artifact),
+          };
+          console.log(
+            `📦 Added ${contractName} at ${address} from deployments.json (factory-created)`
+          );
+        }
+      }
+    });
+  });
+
   const NEXTJS_TARGET_DIR = "../nextjs/contracts/";
 
   // Ensure target directories exist
   if (!existsSync(NEXTJS_TARGET_DIR)) {
     mkdirSync(NEXTJS_TARGET_DIR, { recursive: true });
   }
+
+  // Generate implementation ABIs for clone patterns (contracts not deployed but used as templates)
+  const implementationContracts = ["Pledge", "PledgeToken"];
+  const implementationAbis = {};
+
+  implementationContracts.forEach((contractName) => {
+    const artifact = getArtifactOfContract(contractName);
+    if (artifact) {
+      implementationAbis[contractName] = artifact.abi;
+      console.log(
+        `📦 Generated ABI for implementation contract: ${contractName}`
+      );
+    }
+  });
+
+  // Write implementation ABIs file
+  const implementationFileContent = `
+    ${generatedContractComment}
+
+    ${Object.entries(implementationAbis)
+      .map(
+        ([name, abi]) =>
+          `export const ${name}Abi = ${JSON.stringify(abi, null, 2)} as const;`
+      )
+      .join("\n\n")}
+  `;
+
+  writeFileSync(
+    `${NEXTJS_TARGET_DIR}implementationContracts.ts`,
+    format(implementationFileContent, {
+      parser: "typescript",
+    })
+  );
+
+  console.log(
+    `📝 Updated implementation ABIs on ${NEXTJS_TARGET_DIR}implementationContracts.ts`
+  );
 
   // Generate the deployedContracts content
   const fileContent = Object.entries(allGeneratedContracts).reduce(

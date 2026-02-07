@@ -1,2 +1,2 @@
-export * from "./MyCampaigns";
-export * from "./MyContributions";
+export { MyPledges } from "./MyPledges";
+export { MyContributions } from "./MyContributions";

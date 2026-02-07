@@ -6,8 +6,8 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
-    YourContract: {
-      address: "0x8ce361602b935680e8dec218b820ff5056beb7af",
+    PledgeTreasury: {
+      address: "0xd9b4e184f567eb65dbb0e5ec30f3023ed08c3300",
       abi: [
         {
           type: "constructor",
@@ -21,18 +21,22 @@ const deployedContracts = {
           stateMutability: "nonpayable",
         },
         {
+          type: "fallback",
+          stateMutability: "payable",
+        },
+        {
           type: "receive",
           stateMutability: "payable",
         },
         {
           type: "function",
-          name: "greeting",
+          name: "balance",
           inputs: [],
           outputs: [
             {
               name: "",
-              type: "string",
-              internalType: "string",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           stateMutability: "view",
@@ -52,93 +56,127 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "premium",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "setGreeting",
+          name: "recoverAllToken",
           inputs: [
             {
-              name: "_newGreeting",
-              type: "string",
-              internalType: "string",
+              name: "token",
+              type: "address",
+              internalType: "address",
             },
-          ],
-          outputs: [],
-          stateMutability: "payable",
-        },
-        {
-          type: "function",
-          name: "totalCounter",
-          inputs: [],
-          outputs: [
             {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "userGreetingCounter",
-          inputs: [
-            {
-              name: "",
+              name: "to",
               type: "address",
               internalType: "address",
             },
           ],
-          outputs: [
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "recoverToken",
+          inputs: [
             {
-              name: "",
+              name: "token",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "amount",
               type: "uint256",
               internalType: "uint256",
             },
           ],
-          stateMutability: "view",
+          outputs: [],
+          stateMutability: "nonpayable",
         },
         {
           type: "function",
-          name: "withdraw",
+          name: "renounceOwnership",
           inputs: [],
           outputs: [],
           stateMutability: "nonpayable",
         },
         {
-          type: "event",
-          name: "GreetingChange",
+          type: "function",
+          name: "tokenBalance",
           inputs: [
             {
-              name: "greetingSetter",
+              name: "token",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "transferOwnership",
+          inputs: [
+            {
+              name: "newOwner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawAllETH",
+          inputs: [
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawETH",
+          inputs: [
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "ETHReceived",
+          inputs: [
+            {
+              name: "from",
               type: "address",
               indexed: true,
               internalType: "address",
             },
             {
-              name: "newGreeting",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "premium",
-              type: "bool",
-              indexed: false,
-              internalType: "bool",
-            },
-            {
-              name: "value",
+              name: "amount",
               type: "uint256",
               indexed: false,
               internalType: "uint256",
@@ -146,89 +184,133 @@ const deployedContracts = {
           ],
           anonymous: false,
         },
+        {
+          type: "event",
+          name: "ETHWithdrawn",
+          inputs: [
+            {
+              name: "to",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "OwnershipTransferred",
+          inputs: [
+            {
+              name: "previousOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "TokenRecovered",
+          inputs: [
+            {
+              name: "token",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "OwnableInvalidOwner",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "OwnableUnauthorizedAccount",
+          inputs: [
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "TransferFailed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ZeroAddress",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ZeroAmount",
+          inputs: [],
+        },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 3,
+      deployedOnBlock: 37359052,
     },
-    CampaignFactory: {
-      address: "0xe1aa25618fa0c7a1cfdab5d6b456af611873b629",
+    PledgeFactory: {
+      address: "0xd1ff89aea236acee99b9902d1345088c787a4dc5",
       abi: [
         {
-          type: "function",
-          name: "campaigns",
+          type: "constructor",
           inputs: [
             {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "campaignsByCreator",
-          inputs: [
-            {
-              name: "",
+              name: "_aavePool",
               type: "address",
               internalType: "address",
             },
             {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
+              name: "_weth",
               type: "address",
               internalType: "address",
             },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "createCampaign",
-          inputs: [
             {
-              name: "_fundingGoal",
-              type: "uint256",
-              internalType: "uint256",
+              name: "_aweth",
+              type: "address",
+              internalType: "address",
             },
             {
-              name: "_durationDays",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_title",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "_description",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "_imageUrl",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          outputs: [
-            {
-              name: "campaignAddress",
+              name: "_treasury",
               type: "address",
               internalType: "address",
             },
@@ -237,20 +319,33 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "getAllCampaigns",
+          name: "AAVE_POOL",
           inputs: [],
           outputs: [
             {
               name: "",
-              type: "address[]",
-              internalType: "address[]",
+              type: "address",
+              internalType: "address",
             },
           ],
           stateMutability: "view",
         },
         {
           type: "function",
-          name: "getCampaignCount",
+          name: "AWETH",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "LISTING_TAX",
           inputs: [],
           outputs: [
             {
@@ -263,10 +358,215 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "getCampaignsByCreator",
+          name: "PLEDGE_IMPLEMENTATION",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "PLEDGE_TREASURY",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "WETH",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "createPledge",
           inputs: [
             {
-              name: "_creator",
+              name: "name",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "ticker",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "description",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "imageUrl",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "fundingGoal",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "durationDays",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "founderShareBps",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "pledge",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "getAllPledges",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address[]",
+              internalType: "address[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getAllSummaries",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "tuple[]",
+              internalType: "struct PledgeFactory.PledgeSummary[]",
+              components: [
+                {
+                  name: "pledge",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "creator",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "token",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "name",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "ticker",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "fundingGoal",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "deadline",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "totalRaised",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "founderShareBps",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum Pledge.Status",
+                },
+                {
+                  name: "vaultBalance",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "treasuryShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "circulatingSupply",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getPledges",
+          inputs: [
+            {
+              name: "offset",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "limit",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "result",
+              type: "address[]",
+              internalType: "address[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getPledgesByCreator",
+          inputs: [
+            {
+              name: "creator",
               type: "address",
               internalType: "address",
             },
@@ -282,31 +582,93 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "getCampaignsPaginated",
+          name: "getSummaries",
           inputs: [
             {
-              name: "_offset",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_limit",
-              type: "uint256",
-              internalType: "uint256",
+              name: "pledgeAddresses",
+              type: "address[]",
+              internalType: "address[]",
             },
           ],
           outputs: [
             {
-              name: "",
-              type: "address[]",
-              internalType: "address[]",
+              name: "summaries",
+              type: "tuple[]",
+              internalType: "struct PledgeFactory.PledgeSummary[]",
+              components: [
+                {
+                  name: "pledge",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "creator",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "token",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "name",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "ticker",
+                  type: "string",
+                  internalType: "string",
+                },
+                {
+                  name: "fundingGoal",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "deadline",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "totalRaised",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "founderShareBps",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "status",
+                  type: "uint8",
+                  internalType: "enum Pledge.Status",
+                },
+                {
+                  name: "vaultBalance",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "treasuryShares",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "circulatingSupply",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+              ],
             },
           ],
           stateMutability: "view",
         },
         {
           type: "function",
-          name: "isCampaign",
+          name: "isPledge",
           inputs: [
             {
               name: "",
@@ -325,29 +687,111 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "isValidCampaign",
-          inputs: [
+          name: "owner",
+          inputs: [],
+          outputs: [
             {
-              name: "_address",
+              name: "",
               type: "address",
               internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "pledgeCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "pledges",
+          inputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           outputs: [
             {
               name: "",
-              type: "bool",
-              internalType: "bool",
+              type: "address",
+              internalType: "address",
             },
           ],
           stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "pledgesByCreator",
+          inputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "transferOwnership",
+          inputs: [
+            {
+              name: "newOwner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
         },
         {
           type: "event",
-          name: "CampaignCreated",
+          name: "OwnershipTransferred",
           inputs: [
             {
-              name: "campaignAddress",
+              name: "previousOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PledgeCreated",
+          inputs: [
+            {
+              name: "pledge",
               type: "address",
               indexed: true,
               internalType: "address",
@@ -357,6 +801,24 @@ const deployedContracts = {
               type: "address",
               indexed: true,
               internalType: "address",
+            },
+            {
+              name: "token",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "name",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "ticker",
+              type: "string",
+              indexed: false,
+              internalType: "string",
             },
             {
               name: "fundingGoal",
@@ -371,530 +833,7 @@ const deployedContracts = {
               internalType: "uint256",
             },
             {
-              name: "title",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "error",
-          name: "InvalidDescription",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidDuration",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidFundingGoal",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidTitle",
-          inputs: [],
-        },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 4,
-    },
-    Campaign: {
-      address: "0xe1da8919f262ee86f9be05059c9280142cf23f48",
-      abi: [
-        {
-          type: "constructor",
-          inputs: [
-            {
-              name: "_creator",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "_fundingGoal",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_durationDays",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_title",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "_description",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "_imageUrl",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "MIN_CONTRIBUTION",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "cancel",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "contribute",
-          inputs: [],
-          outputs: [],
-          stateMutability: "payable",
-        },
-        {
-          type: "function",
-          name: "contributions",
-          inputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "contributors",
-          inputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "createdAt",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "creator",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "deadline",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "description",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "finalize",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "fundingGoal",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "fundsWithdrawn",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getCampaignDetails",
-          inputs: [],
-          outputs: [
-            {
-              name: "_creator",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "_fundingGoal",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_deadline",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_totalRaised",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_status",
-              type: "uint8",
-              internalType: "enum Campaign.CampaignStatus",
-            },
-            {
-              name: "_title",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "_description",
-              type: "string",
-              internalType: "string",
-            },
-            {
-              name: "_createdAt",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_contributorCount",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "_imageUrl",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getContribution",
-          inputs: [
-            {
-              name: "_contributor",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getContributorCount",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getContributors",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address[]",
-              internalType: "address[]",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getFundingProgress",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "getTimeRemaining",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "imageUrl",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "isDeadlinePassed",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "isGoalReached",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "refund",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "status",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint8",
-              internalType: "enum Campaign.CampaignStatus",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "title",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "totalRaised",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "withdraw",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "event",
-          name: "CampaignCancelled",
-          inputs: [
-            {
-              name: "creator",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "CampaignStatusUpdated",
-          inputs: [
-            {
-              name: "newStatus",
-              type: "uint8",
-              indexed: false,
-              internalType: "enum Campaign.CampaignStatus",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ContributionMade",
-          inputs: [
-            {
-              name: "contributor",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "totalRaised",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "FundsWithdrawn",
-          inputs: [
-            {
-              name: "creator",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "RefundClaimed",
-          inputs: [
-            {
-              name: "contributor",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
+              name: "founderShareBps",
               type: "uint256",
               indexed: false,
               internalType: "uint256",
@@ -904,67 +843,33 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "AlreadyWithdrawn",
+          name: "FailedDeployment",
           inputs: [],
         },
         {
           type: "error",
-          name: "CampaignNotActive",
+          name: "InsufficientBalance",
+          inputs: [
+            {
+              name: "balance",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "needed",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InsufficientListingTax",
           inputs: [],
         },
         {
           type: "error",
-          name: "CampaignNotFailed",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "CampaignNotSuccessful",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "CampaignStillActive",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ContributionTooSmall",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "DeadlineNotPassed",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "DeadlinePassed",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidParameters",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NoContribution",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotCreator",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotEligibleForRefund",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
+          name: "OnlyOwner",
           inputs: [],
         },
         {
@@ -974,12 +879,12 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "ZeroContribution",
+          name: "ZeroAddress",
           inputs: [],
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 4,
+      deployedOnBlock: 37359053,
     },
   },
 } as const;

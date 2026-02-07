@@ -5,7 +5,13 @@ import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
 import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
-import { ArrowPathIcon, CurrencyDollarIcon, RocketLaunchIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTrendingUpIcon,
+  BanknotesIcon,
+  ChartBarIcon,
+  CurrencyDollarIcon,
+  RocketLaunchIcon,
+} from "@heroicons/react/24/outline";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
@@ -20,19 +26,20 @@ const Home: NextPage = () => {
           <h1 className="text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Pledge</span>
           </h1>
-          <p className="text-2xl mb-2">Decentralized Crowdfunding Protocol</p>
+          <p className="text-2xl mb-2">Decentralized Stock Exchange for Startups</p>
           <p className="text-base-content/60 mb-8 max-w-2xl mx-auto">
-            A trust-minimized crowdfunding platform where funds are escrowed entirely on-chain. No custody, no
-            intermediaries, full transparency.
+            Equity-based crowdfunding with Aave-backed yields. Every share is an asset-backed claim on the treasury.
+            Earn passive yield and active dividends.
           </p>
 
           <div className="flex justify-center gap-4 flex-wrap">
-            <Link href="/campaigns" className="btn btn-primary btn-lg gap-2">
+            <Link href="/pledges" className="btn btn-primary btn-lg gap-2">
               <RocketLaunchIcon className="h-5 w-5" />
-              Explore Campaigns
+              Explore Pledges
             </Link>
-            <Link href="/campaigns/create" className="btn btn-outline btn-lg">
-              Start a Campaign
+            <Link href="/pledges" className="btn btn-outline btn-lg gap-2">
+              <BanknotesIcon className="h-5 w-5" />
+              Create Pledge
             </Link>
           </div>
 
@@ -62,7 +69,7 @@ const Home: NextPage = () => {
                     <RocketLaunchIcon className="h-8 w-8 text-primary" />
                   </div>
                   <h3 className="card-title text-lg">1. Create</h3>
-                  <p className="text-sm text-base-content/60">Launch your campaign with a funding goal and deadline</p>
+                  <p className="text-sm text-base-content/60">Launch your pledge with 0.01 ETH listing tax</p>
                 </div>
               </div>
 
@@ -72,29 +79,27 @@ const Home: NextPage = () => {
                     <CurrencyDollarIcon className="h-8 w-8 text-secondary" />
                   </div>
                   <h3 className="card-title text-lg">2. Fund</h3>
-                  <p className="text-sm text-base-content/60">Backers contribute ETH directly to smart contracts</p>
+                  <p className="text-sm text-base-content/60">Contributors buy shares at ICO price</p>
                 </div>
               </div>
 
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body items-center text-center">
                   <div className="bg-success/10 p-4 rounded-full mb-4">
-                    <ShieldCheckIcon className="h-8 w-8 text-success" />
+                    <ChartBarIcon className="h-8 w-8 text-success" />
                   </div>
-                  <h3 className="card-title text-lg">3. Escrow</h3>
-                  <p className="text-sm text-base-content/60">
-                    Funds are held securely on-chain until conditions are met
-                  </p>
+                  <h3 className="card-title text-lg">3. Goal Met</h3>
+                  <p className="text-sm text-base-content/60">Shares unlock for trading and yield starts accruing</p>
                 </div>
               </div>
 
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body items-center text-center">
                   <div className="bg-warning/10 p-4 rounded-full mb-4">
-                    <ArrowPathIcon className="h-8 w-8 text-warning" />
+                    <ArrowTrendingUpIcon className="h-8 w-8 text-warning" />
                   </div>
-                  <h3 className="card-title text-lg">4. Release</h3>
-                  <p className="text-sm text-base-content/60">Success = creator withdraws. Failure = backers refund.</p>
+                  <h3 className="card-title text-lg">4. Earn</h3>
+                  <p className="text-sm text-base-content/60">Passive Aave yield + active dividends</p>
                 </div>
               </div>
             </div>
@@ -104,22 +109,24 @@ const Home: NextPage = () => {
         {/* Trust Section */}
         <div className="w-full px-8 py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">Trust-Minimized by Design</h2>
+            <h2 className="text-3xl font-bold mb-6">Asset-Backed Equity</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6">
-                <h4 className="font-semibold mb-2">No Custody</h4>
+                <h4 className="font-semibold mb-2">Floor Price</h4>
                 <p className="text-sm text-base-content/60">
-                  Funds are never held by any third party. Smart contracts manage everything.
+                  Every share can be redeemed for pro-rata treasury value. No zero exits.
                 </p>
               </div>
               <div className="p-6">
-                <h4 className="font-semibold mb-2">No Admin Keys</h4>
-                <p className="text-sm text-base-content/60">No owner privileges, no emergency drains, no backdoors.</p>
+                <h4 className="font-semibold mb-2">Dual Income</h4>
+                <p className="text-sm text-base-content/60">
+                  Earn 80% of Aave yield plus dividends from project revenue.
+                </p>
               </div>
               <div className="p-6">
-                <h4 className="font-semibold mb-2">Automatic Refunds</h4>
+                <h4 className="font-semibold mb-2">Fixed Cap</h4>
                 <p className="text-sm text-base-content/60">
-                  If a campaign fails, backers can claim refunds without any approval.
+                  1M shares per pledge. No dilution, transparent ownership.
                 </p>
               </div>
             </div>

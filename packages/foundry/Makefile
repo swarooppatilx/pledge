@@ -11,9 +11,19 @@ setup-anvil-wallet:
 chain: setup-anvil-wallet
 	anvil
 
-# Start a fork
+# Start a fork (use Base Sepolia for Aave V3 testing)
+# Usage: make fork OR make fork FORK_URL=https://sepolia.base.org
 fork: setup-anvil-wallet
-	anvil --fork-url ${FORK_URL} --chain-id 31337
+	@if echo "$(FORK_URL)" | grep -q "^http"; then \
+		anvil --fork-url $(FORK_URL) --chain-id 31337; \
+	elif [ "$(FORK_URL)" = "base-sepolia" ] || [ "$(FORK_URL)" = "base" ] || [ -z "$(FORK_URL)" ]; then \
+		anvil --fork-url https://sepolia.base.org --chain-id 31337; \
+	elif [ "$(FORK_URL)" = "base-mainnet" ]; then \
+		anvil --fork-url https://mainnet.base.org --chain-id 31337; \
+	else \
+		echo "Unknown network: $(FORK_URL). Use 'base-sepolia', 'base-mainnet', or a full URL."; \
+		exit 1; \
+	fi
 
 # Deploy the contracts
 deploy:
