@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ContributorList } from "./_components";
 import { Address } from "@scaffold-ui/components";
-import { formatEther, parseEther } from "viem";
+import { Abi, formatEther, parseEther } from "viem";
 import { hardhat } from "viem/chains";
-import { useAccount, useReadContract, useWriteContract } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ArrowLeftIcon, PhotoIcon, ShareIcon } from "@heroicons/react/24/outline";
-import { useDeployedContractInfo, useTargetNetwork } from "~~/hooks/scaffold-eth";
+import {
+  useDeployedContractInfo,
+  useTargetNetwork,
+} from "~~/hooks/scaffold-eth";
 import { withTransactionNotification } from "~~/hooks/useTransactionNotification";
 import { CampaignStatus, contributeSchema, getStatusColor, getStatusLabel } from "~~/utils/campaign";
 import { notification } from "~~/utils/scaffold-eth";
@@ -22,37 +25,91 @@ export default function CampaignDetailPage() {
   const campaignAddress = params.address as `0x${string}`;
   const { address: userAddress, isConnected } = useAccount();
   const { targetNetwork } = useTargetNetwork();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
   const [contributeAmount, setContributeAmount] = useState("");
   const [contributeError, setContributeError] = useState("");
 
-  // Get Campaign ABI from externalContracts
+  // Get Campaign ABI from deployedContracts
   const { data: campaignContractInfo } = useDeployedContractInfo({ contractName: "Campaign" });
   const campaignAbi = campaignContractInfo?.abi;
 
-  // Read campaign details
-  const {
-    data: campaignDetails,
-    isLoading,
-    refetch,
-  } = useReadContract({
-    address: campaignAddress,
-    abi: campaignAbi,
-    functionName: "getCampaignDetails",
-    query: { enabled: !!campaignAbi },
-  });
+  // Read campaign details using publicClient (since Campaign is not in deployedContracts by address)
+  const [campaignDetails, setCampaignDetails] = useState<readonly [
+    `0x${string}`,
+    bigint,
+    bigint,
+    bigint,
+    number,
+    string,
+    string,
+    bigint,
+    bigint,
+    string,
+  ] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userContribution, setUserContribution] = useState<bigint>(0n);
 
-  // Read user's contribution
-  const { data: userContribution } = useReadContract({
-    address: campaignAddress,
-    abi: campaignAbi,
-    functionName: "getContribution",
-    args: [userAddress],
-    query: { enabled: !!campaignAbi && !!userAddress },
-  });
+  // Fetch campaign details
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!campaignAbi || !publicClient) return;
+      
+      try {
+        const details = await publicClient.readContract({
+          address: campaignAddress,
+          abi: campaignAbi as Abi,
+          functionName: "getCampaignDetails",
+        });
+        setCampaignDetails(details as typeof campaignDetails);
 
-  // Write contract hook
-  const { writeContractAsync, isPending } = useWriteContract();
+        if (userAddress) {
+          const contribution = await publicClient.readContract({
+            address: campaignAddress,
+            abi: campaignAbi as Abi,
+            functionName: "getContribution",
+            args: [userAddress],
+          });
+          setUserContribution(contribution as bigint);
+        }
+      } catch (error) {
+        console.error("Failed to fetch campaign details:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDetails();
+  }, [campaignAbi, publicClient, campaignAddress, userAddress]);
+
+  // Use SE-2 write hook for CampaignFactory (for reference, but we need to write to Campaign directly)
+  // For campaign-specific writes, we use the walletClient from wagmi hook
+  const [isPending, setIsPending] = useState(false);
+
+  const refetch = async () => {
+    if (!campaignAbi || !publicClient) return;
+    
+    try {
+      const details = await publicClient.readContract({
+        address: campaignAddress,
+        abi: campaignAbi as Abi,
+        functionName: "getCampaignDetails",
+      });
+      setCampaignDetails(details as typeof campaignDetails);
+
+      if (userAddress) {
+        const contribution = await publicClient.readContract({
+          address: campaignAddress,
+          abi: campaignAbi as Abi,
+          functionName: "getContribution",
+          args: [userAddress],
+        });
+        setUserContribution(contribution as bigint);
+      }
+    } catch (error) {
+      console.error("Failed to refetch:", error);
+    }
+  };
 
   if (isLoading || !campaignDetails || !campaignAbi) {
     return (
@@ -63,19 +120,6 @@ export default function CampaignDetailPage() {
       </div>
     );
   }
-
-  const details = campaignDetails as readonly [
-    `0x${string}`, // creator
-    bigint, // fundingGoal
-    bigint, // deadline
-    bigint, // totalRaised
-    number, // status
-    string, // title
-    string, // description
-    bigint, // createdAt
-    bigint, // contributorCount
-    string, // imageUrl
-  ];
 
   const [
     creator,
@@ -88,18 +132,18 @@ export default function CampaignDetailPage() {
     createdAt,
     contributorCount,
     imageUrl,
-  ] = details;
+  ] = campaignDetails;
 
   const progress = fundingGoal > 0n ? Number((totalRaised * 100n) / fundingGoal) : 0;
   const deadlineDate = new Date(Number(deadline) * 1000);
   const createdDate = new Date(Number(createdAt) * 1000);
   const isExpired = Date.now() > Number(deadline) * 1000;
   const isCreator = userAddress?.toLowerCase() === creator.toLowerCase();
-  const hasContributed = userContribution && (userContribution as bigint) > 0n;
+  const hasContributed = userContribution > 0n;
   const currentStatus = status as CampaignStatusType;
 
   const handleContribute = async () => {
-    if (!campaignAbi) return;
+    if (!campaignAbi || !publicClient || !walletClient) return;
     setContributeError("");
     const result = contributeSchema.safeParse({ amount: contributeAmount });
     if (!result.success) {
@@ -107,91 +151,131 @@ export default function CampaignDetailPage() {
       return;
     }
 
-    const txResult = await withTransactionNotification(
-      `Contributing ${contributeAmount} ETH...`,
-      "Contribution successful! 🎉",
-      "Contribution failed",
-      () =>
-        writeContractAsync({
-          address: campaignAddress,
-          abi: campaignAbi,
-          functionName: "contribute",
-          value: parseEther(contributeAmount),
-        }),
-    );
+    setIsPending(true);
+    try {
+      const txResult = await withTransactionNotification(
+        `Contributing ${contributeAmount} ETH...`,
+        "Contribution successful! 🎉",
+        "Contribution failed",
+        async () => {
+          const { request } = await publicClient.simulateContract({
+            address: campaignAddress,
+            abi: campaignAbi as Abi,
+            functionName: "contribute",
+            value: parseEther(contributeAmount),
+            account: userAddress,
+          });
+          return walletClient.writeContract(request);
+        },
+      );
 
-    if (txResult) {
-      setContributeAmount("");
-      refetch();
+      if (txResult) {
+        setContributeAmount("");
+        refetch();
+      }
+    } finally {
+      setIsPending(false);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!campaignAbi) return;
-    const txResult = await withTransactionNotification(
-      "Withdrawing funds...",
-      "Withdrawal successful! 💰",
-      "Withdrawal failed",
-      () =>
-        writeContractAsync({
-          address: campaignAddress,
-          abi: campaignAbi,
-          functionName: "withdraw",
-        }),
-    );
+    if (!campaignAbi || !publicClient || !walletClient) return;
+    setIsPending(true);
+    try {
+      const txResult = await withTransactionNotification(
+        "Withdrawing funds...",
+        "Withdrawal successful! 💰",
+        "Withdrawal failed",
+        async () => {
+          const { request } = await publicClient.simulateContract({
+            address: campaignAddress,
+            abi: campaignAbi as Abi,
+            functionName: "withdraw",
+            account: userAddress,
+          });
+          return walletClient.writeContract(request);
+        },
+      );
 
-    if (txResult) refetch();
+      if (txResult) refetch();
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleRefund = async () => {
-    if (!campaignAbi) return;
-    const txResult = await withTransactionNotification(
-      "Claiming refund...",
-      "Refund claimed! 💸",
-      "Refund failed",
-      () =>
-        writeContractAsync({
-          address: campaignAddress,
-          abi: campaignAbi,
-          functionName: "refund",
-        }),
-    );
+    if (!campaignAbi || !publicClient || !walletClient) return;
+    setIsPending(true);
+    try {
+      const txResult = await withTransactionNotification(
+        "Claiming refund...",
+        "Refund claimed! 💸",
+        "Refund failed",
+        async () => {
+          const { request } = await publicClient.simulateContract({
+            address: campaignAddress,
+            abi: campaignAbi as Abi,
+            functionName: "refund",
+            account: userAddress,
+          });
+          return walletClient.writeContract(request);
+        },
+      );
 
-    if (txResult) refetch();
+      if (txResult) refetch();
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleFinalize = async () => {
-    if (!campaignAbi) return;
-    const txResult = await withTransactionNotification(
-      "Finalizing campaign...",
-      "Campaign finalized! ✅",
-      "Finalize failed",
-      () =>
-        writeContractAsync({
-          address: campaignAddress,
-          abi: campaignAbi,
-          functionName: "finalize",
-        }),
-    );
+    if (!campaignAbi || !publicClient || !walletClient) return;
+    setIsPending(true);
+    try {
+      const txResult = await withTransactionNotification(
+        "Finalizing campaign...",
+        "Campaign finalized! ✅",
+        "Finalize failed",
+        async () => {
+          const { request } = await publicClient.simulateContract({
+            address: campaignAddress,
+            abi: campaignAbi as Abi,
+            functionName: "finalize",
+            account: userAddress,
+          });
+          return walletClient.writeContract(request);
+        },
+      );
 
-    if (txResult) refetch();
+      if (txResult) refetch();
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleCancel = async () => {
-    if (!campaignAbi) return;
-    const txResult = await withTransactionNotification(
-      "Cancelling campaign...",
-      "Campaign cancelled",
-      "Cancel failed",
-      () =>
-        writeContractAsync({
-          address: campaignAddress,
-          abi: campaignAbi,
-          functionName: "cancel",
-        }),
-    );
+    if (!campaignAbi || !publicClient || !walletClient) return;
+    setIsPending(true);
+    try {
+      const txResult = await withTransactionNotification(
+        "Cancelling campaign...",
+        "Campaign cancelled",
+        "Cancel failed",
+        async () => {
+          const { request } = await publicClient.simulateContract({
+            address: campaignAddress,
+            abi: campaignAbi as Abi,
+            functionName: "cancel",
+            account: userAddress,
+          });
+          return walletClient.writeContract(request);
+        },
+      );
 
-    if (txResult) refetch();
+      if (txResult) refetch();
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (

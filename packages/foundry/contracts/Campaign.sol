@@ -59,6 +59,12 @@ contract Campaign is ReentrancyGuard {
     error NoContribution();
     error TransferFailed();
     error InvalidParameters();
+    error AlreadyWithdrawn();
+    error NotEligibleForRefund();
+
+    // ============ Mutable State ============
+
+    bool public fundsWithdrawn;
 
     // ============ Modifiers ============
 
@@ -165,16 +171,20 @@ contract Campaign is ReentrancyGuard {
     }
 
     /**
-     * @notice Creator withdraws funds after successful campaign
-     * @dev Only callable by creator when campaign is Successful
+     * @notice Creator withdraws funds after successful campaign AND after deadline
+     * @dev CRITICAL: Requires deadline passed to prevent early rug-pulls
      */
-    function withdraw() external onlyCreator nonReentrant {
+    function withdraw() external onlyCreator onlyAfterDeadline nonReentrant {
         if (status != CampaignStatus.Successful) revert CampaignNotSuccessful();
+        if (fundsWithdrawn) revert AlreadyWithdrawn();
 
         uint256 amount = address(this).balance;
         if (amount == 0) revert TransferFailed();
 
-        // Interactions
+        // EFFECTS: Mark as withdrawn before transfer (CEI pattern)
+        fundsWithdrawn = true;
+
+        // INTERACTIONS: External call last
         (bool success,) = creator.call{ value: amount }("");
         if (!success) revert TransferFailed();
 
@@ -182,21 +192,35 @@ contract Campaign is ReentrancyGuard {
     }
 
     /**
-     * @notice Backer claims refund after failed campaign
-     * @dev Only callable when campaign is Failed
+     * @notice Backer claims refund after failed/cancelled campaign
+     * @dev CRITICAL: Permissionless - allows refund without explicit finalize() call
+     *      If deadline passed and goal not reached, auto-finalizes to Failed
      */
     function refund() external nonReentrant {
-        if (status != CampaignStatus.Failed && status != CampaignStatus.Cancelled) {
-            revert CampaignNotFailed();
+        // Permissionless refund logic
+        bool canRefund = (status == CampaignStatus.Failed || status == CampaignStatus.Cancelled);
+        
+        if (!canRefund) {
+            // Check if should allow refund even without finalization
+            if (block.timestamp >= deadline && totalRaised < fundingGoal) {
+                // Auto-finalize to Failed
+                if (status == CampaignStatus.Active) {
+                    status = CampaignStatus.Failed;
+                    emit CampaignStatusUpdated(CampaignStatus.Failed);
+                }
+                canRefund = true;
+            }
         }
+        
+        if (!canRefund) revert NotEligibleForRefund();
 
         uint256 amount = contributions[msg.sender];
         if (amount == 0) revert NoContribution();
 
-        // Effects
+        // EFFECTS: Zero out before transfer (CEI pattern)
         contributions[msg.sender] = 0;
 
-        // Interactions
+        // INTERACTIONS: External call last
         (bool success,) = msg.sender.call{ value: amount }("");
         if (!success) revert TransferFailed();
 

@@ -1,6 +1,4 @@
-import fs from "fs";
-import path from "path";
-import { Address } from "viem";
+import { Address, createPublicClient, http } from "viem";
 import { foundry } from "viem/chains";
 import { AddressComponent } from "~~/app/blockexplorer/_components/AddressComponent";
 import deployedContracts from "~~/contracts/deployedContracts";
@@ -11,32 +9,9 @@ type PageProps = {
   params: Promise<{ address: Address }>;
 };
 
-async function fetchByteCodeAndAssembly(buildInfoDirectory: string, contractPath: string) {
-  const buildInfoFiles = fs.readdirSync(buildInfoDirectory);
-  let bytecode = "";
-  let assembly = "";
-
-  for (let i = 0; i < buildInfoFiles.length; i++) {
-    const filePath = path.join(buildInfoDirectory, buildInfoFiles[i]);
-
-    const buildInfo = JSON.parse(fs.readFileSync(filePath, "utf8"));
-
-    if (buildInfo.output.contracts[contractPath]) {
-      for (const contract in buildInfo.output.contracts[contractPath]) {
-        bytecode = buildInfo.output.contracts[contractPath][contract].evm.bytecode.object;
-        assembly = buildInfo.output.contracts[contractPath][contract].evm.bytecode.opcodes;
-        break;
-      }
-    }
-
-    if (bytecode && assembly) {
-      break;
-    }
-  }
-
-  return { bytecode, assembly };
-}
-
+/**
+ * Get bytecode using Viem instead of fs (works in Vercel/browser)
+ */
 const getContractData = async (address: Address) => {
   const contracts = deployedContracts as GenericContractsDeclaration | null;
   const chainId = foundry.id;
@@ -45,42 +20,42 @@ const getContractData = async (address: Address) => {
     return null;
   }
 
-  let contractPath = "";
-
-  const buildInfoDirectory = path.join(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "foundry",
-    "out",
-    "build-info",
-  );
-
-  if (!fs.existsSync(buildInfoDirectory)) {
-    throw new Error(`Directory ${buildInfoDirectory} not found.`);
-  }
-
+  // Check if this address is a known contract
   const deployedContractsOnChain = contracts[chainId];
-  for (const [contractName, contractInfo] of Object.entries(deployedContractsOnChain)) {
+  let isKnownContract = false;
+  
+  for (const [, contractInfo] of Object.entries(deployedContractsOnChain)) {
     if (contractInfo.address.toLowerCase() === address.toLowerCase()) {
-      contractPath = `contracts/${contractName}.sol`;
+      isKnownContract = true;
       break;
     }
   }
 
-  if (!contractPath) {
-    // No contract found at this address
+  if (!isKnownContract) {
     return null;
   }
 
-  const { bytecode, assembly } = await fetchByteCodeAndAssembly(buildInfoDirectory, contractPath);
+  try {
+    // Use Viem to fetch bytecode from the chain
+    const client = createPublicClient({
+      chain: foundry,
+      transport: http(),
+    });
 
-  return { bytecode, assembly };
+    const bytecode = await client.getBytecode({ address });
+    
+    if (!bytecode) {
+      return null;
+    }
+
+    return { 
+      bytecode: bytecode.slice(2), // Remove 0x prefix
+      assembly: "Assembly not available in production build" 
+    };
+  } catch (error) {
+    console.error("Failed to fetch bytecode:", error);
+    return null;
+  }
 };
 
 export function generateStaticParams() {

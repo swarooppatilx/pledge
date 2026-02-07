@@ -1,15 +1,35 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CampaignFilters, CampaignList } from "./_components";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useCampaignStore } from "~~/services/store/campaignStore";
 
-const CampaignsPage: NextPage = () => {
+function CampaignsContent() {
   const { isConnected } = useAccount();
-  const { statusFilter, searchQuery, sortBy } = useCampaignStore();
+  const searchParams = useSearchParams();
+  const { statusFilter, searchQuery, sortBy, setStatusFilter, setSearchQuery, setSortBy } = useCampaignStore();
+
+  // Sync URL params to store on mount
+  useEffect(() => {
+    const urlStatus = searchParams.get("status");
+    const urlSearch = searchParams.get("q");
+    const urlSort = searchParams.get("sort");
+
+    if (urlStatus && ["all", "active", "successful", "failed", "cancelled"].includes(urlStatus)) {
+      setStatusFilter(urlStatus as typeof statusFilter);
+    }
+    if (urlSearch !== null) {
+      setSearchQuery(urlSearch);
+    }
+    if (urlSort && ["newest", "oldest", "mostFunded", "endingSoon"].includes(urlSort)) {
+      setSortBy(urlSort as typeof sortBy);
+    }
+  }, [searchParams, setStatusFilter, setSearchQuery, setSortBy]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -34,6 +54,22 @@ const CampaignsPage: NextPage = () => {
       {/* Campaign Grid */}
       <CampaignList statusFilter={statusFilter} searchQuery={searchQuery} sortBy={sortBy} />
     </div>
+  );
+}
+
+const CampaignsPage: NextPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center py-20">
+            <span className="loading loading-spinner loading-lg"></span>
+          </div>
+        </div>
+      }
+    >
+      <CampaignsContent />
+    </Suspense>
   );
 };
 

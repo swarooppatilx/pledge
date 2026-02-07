@@ -208,6 +208,9 @@ contract CampaignTest is Test {
         vm.prank(backer1);
         campaign.contribute{ value: FUNDING_GOAL }();
 
+        // CRITICAL: Must warp past deadline before withdrawal
+        vm.warp(block.timestamp + DURATION_DAYS * 1 days + 1);
+
         uint256 creatorBalanceBefore = creator.balance;
 
         vm.prank(creator);
@@ -219,9 +222,25 @@ contract CampaignTest is Test {
         assertEq(address(campaign).balance, 0);
     }
 
+    function test_WithdrawFailsBeforeDeadline() public {
+        // Fund campaign to goal (status becomes Successful)
+        vm.prank(backer1);
+        campaign.contribute{ value: FUNDING_GOAL }();
+        
+        assertEq(uint256(campaign.status()), uint256(Campaign.CampaignStatus.Successful));
+        
+        // Try to withdraw before deadline - SHOULD FAIL
+        vm.prank(creator);
+        vm.expectRevert(Campaign.DeadlineNotPassed.selector);
+        campaign.withdraw();
+    }
+
     function test_WithdrawFailsIfNotSuccessful() public {
         vm.prank(backer1);
         campaign.contribute{ value: 1 ether }();
+
+        // Warp past deadline
+        vm.warp(block.timestamp + DURATION_DAYS * 1 days + 1);
 
         vm.prank(creator);
         vm.expectRevert(Campaign.CampaignNotSuccessful.selector);
@@ -231,6 +250,9 @@ contract CampaignTest is Test {
     function test_WithdrawFailsIfNotCreator() public {
         vm.prank(backer1);
         campaign.contribute{ value: FUNDING_GOAL }();
+
+        // Warp past deadline
+        vm.warp(block.timestamp + DURATION_DAYS * 1 days + 1);
 
         vm.prank(backer1);
         vm.expectRevert(Campaign.NotCreator.selector);
@@ -262,12 +284,36 @@ contract CampaignTest is Test {
         assertEq(campaign.getContribution(backer1), 0);
     }
 
+    function test_PermissionlessRefundWithoutFinalize() public {
+        // CRITICAL: Test that refund works even without calling finalize()
+        uint256 contribution = 5 ether;
+
+        vm.prank(backer1);
+        campaign.contribute{ value: contribution }();
+
+        // Warp past deadline - status is still Active
+        vm.warp(block.timestamp + DURATION_DAYS * 1 days + 1);
+        
+        // Status should still be Active (no one called finalize)
+        assertEq(uint256(campaign.status()), uint256(Campaign.CampaignStatus.Active));
+
+        // Should be able to refund anyway (permissionless)
+        uint256 balanceBefore = backer1.balance;
+
+        vm.prank(backer1);
+        campaign.refund();
+
+        assertEq(backer1.balance, balanceBefore + contribution);
+        // Status should now be Failed (auto-finalized)
+        assertEq(uint256(campaign.status()), uint256(Campaign.CampaignStatus.Failed));
+    }
+
     function test_RefundFailsIfCampaignNotFailed() public {
         vm.prank(backer1);
         campaign.contribute{ value: 1 ether }();
 
         vm.prank(backer1);
-        vm.expectRevert(Campaign.CampaignNotFailed.selector);
+        vm.expectRevert(Campaign.NotEligibleForRefund.selector);
         campaign.refund();
     }
 
