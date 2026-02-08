@@ -1,24 +1,46 @@
-# 🏗 Scaffold-ETH 2
+# 🚀 Pledge Protocol
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
+  <a href="https://pledge-crowd.vercel.app">Website</a>
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+A decentralized stock exchange for startups. Pledge Protocol enables founders to raise funds through tokenized equity vaults, giving contributors ownership shares in early-stage projects.
 
-> [!NOTE]
-> 🤖 Scaffold-ETH 2 is AI-ready! It has everything agents need to build on Ethereum. Check `.agents/`, `.claude/`, `.opencode` or `.cursor/` for more info.
+## Screenshots
 
-⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
+<p align="center">
+  <img src="./screenshots/home.png" alt="Home Page" width="800"/>
+</p>
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+<p align="center">
+  <img src="./screenshots/create-pledge.png" alt="Create Pledge" width="800"/>
+</p>
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+<p align="center">
+  <img src="./screenshots/pledge-details.png" alt="Pledge Details" width="800"/>
+</p>
+
+## How It Works
+
+1. **Create** - Founders launch a pledge with funding goals and equity terms
+2. **Fund** - Contributors receive shares based on their contribution during the ICO phase
+3. **Trade** - After funding completes, shares become tradeable on the open market
+4. **Earn** - Founders and contributors benefit from project success
+
+## Features
+
+- 🏦 **Tokenized Equity Vaults** - ERC20 tokens representing startup shares
+- 🔒 **Minimal Proxies** - EIP-1167 clones for gas-efficient, battle-tested deployments
+- 📊 **Transparent Funding** - On-chain tracking of contributions and ownership
+- 💱 **Secondary Trading** - Trade shares after funding completes
+- ⚡ **Uniswap v4 Integration** - Liquidity and trading infrastructure
+
+## Tech Stack
+
+- **Smart Contracts**: Solidity with Foundry
+- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, DaisyUI
+- **Web3**: RainbowKit, Wagmi, Viem
+- **AMM**: Uniswap v4 Core
 
 ## Requirements
 
@@ -27,57 +49,83 @@ Before you begin, you need to install the following tools:
 - [Node (>= v20.18.3)](https://nodejs.org/en/download/)
 - Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
 - [Git](https://git-scm.com/downloads)
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
 ## Quickstart
 
-To get started with Scaffold-ETH 2, follow the steps below:
+1. Install dependencies:
 
-1. Install dependencies if it was skipped in CLI:
-
-```
-cd my-dapp-example
+```bash
 yarn install
 ```
 
-2. Run a local network in the first terminal:
+2. Start the local blockchain:
 
+```bash
+yarn fork baseSepolia
 ```
-yarn chain
-```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
+3. Deploy contracts (in a new terminal):
 
-3. On a second terminal, deploy the test contract:
-
-```
+```bash
 yarn deploy
 ```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
+4. Start the frontend (in a new terminal):
 
-4. On a third terminal, start your NextJS app:
-
-```
+```bash
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Visit your app at `http://localhost:3000`.
 
-Run smart contract test with `yarn foundry:test`
+## Development
 
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
+```bash
+# Run smart contract tests
+yarn foundry:test
 
+# Lint code
+yarn lint
+
+# Format code
+yarn format
+
+# Build frontend
+yarn next:build
+```
+
+## Project Structure
+
+- `packages/foundry/contracts/` - Smart contracts
+- `packages/foundry/script/` - Deployment scripts
+- `packages/foundry/test/` - Contract tests
+- `packages/nextjs/` - Frontend application
+- `packages/nextjs/app/` - Next.js pages (App Router)
+- `packages/nextjs/components/` - React components
+- `packages/nextjs/hooks/` - Custom React hooks
+
+## Deployment
+
+```bash
+# Deploy to testnet/mainnet
+yarn deploy --network <network>
+
+# Verify contracts
+yarn verify --network <network>
+
+# Deploy frontend
+yarn vercel:yolo --prod
+```
 
 ## Documentation
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+Visit [Scaffold-ETH 2 docs](https://docs.scaffoldeth.io) for framework documentation.
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+## Contributing
 
-## Contributing to Scaffold-ETH 2
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
-We welcome contributions to Scaffold-ETH 2!
+## License
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+MIT License - see [LICENCE](LICENCE)
