@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,9 +10,9 @@ import {
   BugAntIcon,
   ChartPieIcon,
   InformationCircleIcon,
+  MagnifyingGlassIcon,
   RocketLaunchIcon,
   TrophyIcon,
-  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick, useTargetNetwork } from "~~/hooks/scaffold-eth";
@@ -93,7 +93,7 @@ export const Header = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const burgerMenuRef = useRef<HTMLDetailsElement>(null);
-  
+
   useOutsideClick(burgerMenuRef, () => {
     burgerMenuRef?.current?.removeAttribute("open");
   });
@@ -182,10 +182,10 @@ export const Header = () => {
           <span className="w-2 h-2 rounded-full bg-[#27AE60]"></span>
           {targetNetwork.name}
         </div>
-        
+
         {/* Connect Button */}
         <RainbowKitCustomConnectButton />
-        
+
         {/* Faucet for local network */}
         {isLocalNetwork && <FaucetButton />}
       </div>

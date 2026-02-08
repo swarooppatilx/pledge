@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { formatEther } from "viem";
-import { YieldTicker, SimulatedYieldTicker } from "./YieldTicker";
 import { RedeemWarning } from "./Badges";
+import { SimulatedYieldTicker, YieldTicker } from "./YieldTicker";
+import { formatEther } from "viem";
 
 // Helper to format ETH values with reasonable precision
 const formatEthValue = (value: bigint, decimals: number = 6): string => {
@@ -53,9 +53,7 @@ export const RewardCard = ({
         {/* Unclaimed Dividends */}
         <div className="flex justify-between items-center">
           <span className="text-text-body">Unclaimed Dividends</span>
-          <span className="text-mono font-medium text-text-hero">
-            Ξ{formatEthValue(unclaimedDividends)}
-          </span>
+          <span className="text-mono font-medium text-text-hero">Ξ{formatEthValue(unclaimedDividends)}</span>
         </div>
 
         {/* Accrued Yield - Animated */}
@@ -74,19 +72,13 @@ export const RewardCard = ({
         <div className="border-t border-border-subtle pt-4">
           <div className="flex justify-between items-center">
             <span className="text-text-hero font-semibold">Total Claimable</span>
-            <span className="text-price-big text-primary">
-              Ξ{formatEthValue(totalRewards)}
-            </span>
+            <span className="text-price-big text-primary">Ξ{formatEthValue(totalRewards)}</span>
           </div>
         </div>
 
         {/* Claim Button */}
         {onClaim && (
-          <button
-            onClick={onClaim}
-            disabled={!hasRewards || isClaiming}
-            className="btn-brand w-full mt-4"
-          >
+          <button onClick={onClaim} disabled={!hasRewards || isClaiming} className="btn-brand w-full mt-4">
             {isClaiming ? (
               <span className="loading loading-spinner loading-sm"></span>
             ) : hasRewards ? (

@@ -30,9 +30,9 @@ export const Footer = () => {
           {isLocalNetwork && (
             <>
               <Faucet />
-              <Link 
-                href="/blockexplorer" 
-                passHref 
+              <Link
+                href="/blockexplorer"
+                passHref
                 className="bg-[#131313] border border-[#222222] rounded-[12px] px-3 py-1.5 flex items-center gap-2 text-sm text-[#9B9B9B] hover:text-white hover:border-[#333333] transition-colors"
               >
                 <MagnifyingGlassIcon className="h-4 w-4" />
@@ -49,15 +49,25 @@ export const Footer = () => {
           <div className="flex items-center gap-2 text-[#5E5E5E] text-sm">
             <span>© 2026 Pledge Protocol</span>
             <span>·</span>
-            <a href="https://github.com/scaffold-eth/se-2" target="_blank" rel="noreferrer" className="hover:text-[#9B9B9B] transition-colors">
+            <a
+              href="https://github.com/scaffold-eth/se-2"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#9B9B9B] transition-colors"
+            >
               GitHub
             </a>
             <span>·</span>
-            <a href="https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA" target="_blank" rel="noreferrer" className="hover:text-[#9B9B9B] transition-colors">
+            <a
+              href="https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#9B9B9B] transition-colors"
+            >
               Support
             </a>
           </div>
-          
+
           <div className="flex items-center gap-2 text-[#5E5E5E] text-sm">
             <span>Built with</span>
             <HeartIcon className="h-4 w-4 text-[#FF007A]" />

@@ -65,11 +65,7 @@ export const StatCard = ({
           {trend && (
             <span
               className={`text-sm font-medium ${
-                trendType === "positive"
-                  ? "text-success"
-                  : trendType === "negative"
-                    ? "text-danger"
-                    : "text-text-body"
+                trendType === "positive" ? "text-success" : trendType === "negative" ? "text-danger" : "text-text-body"
               }`}
             >
               {trend}

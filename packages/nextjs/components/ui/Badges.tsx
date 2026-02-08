@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ExclamationTriangleIcon, LockClosedIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ExclamationTriangleIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 
 /**
  * ICO Lock Badge
@@ -35,13 +35,7 @@ export const RedeemWarning = ({ className = "" }: { className?: string }) => {
  * Recycled Tag
  * Shows when a project has high treasury recycling
  */
-export const RecycledTag = ({
-  treasuryPercent,
-  className = "",
-}: {
-  treasuryPercent: number;
-  className?: string;
-}) => {
+export const RecycledTag = ({ treasuryPercent, className = "" }: { treasuryPercent: number; className?: string }) => {
   if (treasuryPercent < 10) return null;
 
   return (

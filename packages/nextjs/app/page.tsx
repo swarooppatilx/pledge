@@ -9,11 +9,11 @@ import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
   ChartBarIcon,
+  CubeIcon,
   CurrencyDollarIcon,
   RocketLaunchIcon,
-  SparklesIcon,
   ShieldCheckIcon,
-  CubeIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -30,12 +30,8 @@ const Home: NextPage = () => {
       {/* Hero Section */}
       <section className="relative pt-20 pb-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-[48px] leading-[56px] mb-6 font-semibold text-white">
-            Pledge Protocol
-          </h1>
-          <p className="text-h1 text-[#9B9B9B] mb-4">
-            Decentralized Stock Exchange for Startups
-          </p>
+          <h1 className="text-[48px] leading-[56px] mb-6 font-semibold text-white">Pledge Protocol</h1>
+          <p className="text-h1 text-[#9B9B9B] mb-4">Decentralized Stock Exchange for Startups</p>
           <p className="text-[#5E5E5E] mb-10 max-w-2xl mx-auto leading-relaxed">
             Equity-based crowdfunding with Aave-backed yields. Every share is an asset-backed claim on the treasury.
             Earn passive yield and active dividends.
@@ -46,10 +42,7 @@ const Home: NextPage = () => {
               <RocketLaunchIcon className="h-5 w-5" />
               Explore Pledges
             </Link>
-            <Link
-              href="/pledges"
-              className="btn-brand-outline flex items-center gap-2 text-lg px-8 py-4"
-            >
+            <Link href="/pledges" className="btn-brand-outline flex items-center gap-2 text-lg px-8 py-4">
               <BanknotesIcon className="h-5 w-5" />
               Create Pledge
             </Link>
@@ -136,7 +129,7 @@ const Home: NextPage = () => {
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-display text-center mb-16">Asset-Backed Equity</h2>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <div className="card-pledge p-8 border-l-4 border-l-[#FF007A]">
               <ShieldCheckIcon className="h-8 w-8 text-[#FF007A] mb-4" />
@@ -145,7 +138,7 @@ const Home: NextPage = () => {
                 Every share can be redeemed for pro-rata treasury value. No zero exits.
               </p>
             </div>
-            
+
             <div className="card-pledge p-8 border-l-4 border-l-[#27AE60]">
               <SparklesIcon className="h-8 w-8 text-[#27AE60] mb-4" />
               <h4 className="text-h2 mb-3">Dual Income</h4>
@@ -153,7 +146,7 @@ const Home: NextPage = () => {
                 Earn 80% of Aave yield plus dividends from project revenue.
               </p>
             </div>
-            
+
             <div className="card-pledge p-8 border-l-4 border-l-[#9B9B9B]">
               <CubeIcon className="h-8 w-8 text-[#9B9B9B] mb-4" />
               <h4 className="text-h2 mb-3">Fixed Cap</h4>
@@ -169,9 +162,7 @@ const Home: NextPage = () => {
       <section className="bg-[#131313] py-20 px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-display mb-6">Ready to Start?</h2>
-          <p className="text-[#5E5E5E] mb-8">
-            Join the decentralized future of startup investing.
-          </p>
+          <p className="text-[#5E5E5E] mb-8">Join the decentralized future of startup investing.</p>
           <Link href="/pledges" className="btn-brand inline-flex items-center gap-2 text-lg px-10 py-4 glow-primary">
             <RocketLaunchIcon className="h-5 w-5" />
             Launch App

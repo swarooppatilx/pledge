@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title PledgeTreasury
@@ -18,6 +19,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * - ETH withdrawal: Owner can withdraw accumulated funds
  */
 contract PledgeTreasury is Ownable {
+    using SafeERC20 for IERC20;
+
     // ============ Events ============
 
     event ETHReceived(address indexed from, uint256 amount);
@@ -99,7 +102,7 @@ contract PledgeTreasury is Ownable {
         if (to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
 
-        IERC20(token).transfer(to, amount);
+        IERC20(token).safeTransfer(to, amount);
 
         emit TokenRecovered(token, to, amount);
     }
@@ -116,7 +119,7 @@ contract PledgeTreasury is Ownable {
         uint256 tokenBal = IERC20(token).balanceOf(address(this));
         if (tokenBal == 0) revert ZeroAmount();
 
-        IERC20(token).transfer(to, tokenBal);
+        IERC20(token).safeTransfer(to, tokenBal);
 
         emit TokenRecovered(token, to, tokenBal);
     }

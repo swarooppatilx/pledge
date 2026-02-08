@@ -6,12 +6,7 @@ import { useRouter } from "next/navigation";
 import type { NextPage } from "next";
 import { parseEther } from "viem";
 import { useAccount } from "wagmi";
-import {
-  ArrowPathIcon,
-  Cog6ToothIcon,
-  CheckIcon,
-  InformationCircleIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowPathIcon, CheckIcon, Cog6ToothIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCreatePledge } from "~~/hooks/usePledge";
 
@@ -45,10 +40,7 @@ const CreatePledgePage: NextPage = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   // Validation
-  const isStep1Valid =
-    formData.name.length >= 2 &&
-    formData.ticker.length >= 3 &&
-    formData.ticker.length <= 6;
+  const isStep1Valid = formData.name.length >= 2 && formData.ticker.length >= 3 && formData.ticker.length <= 6;
 
   const isStep2Valid =
     formData.fundingGoal &&
@@ -99,7 +91,7 @@ const CreatePledgePage: NextPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <h1 className="text-[28px] font-semibold text-white">New pledge</h1>
-          
+
           <div className="flex items-center gap-3">
             {/* Reset Button */}
             <button
@@ -137,7 +129,7 @@ const CreatePledgePage: NextPage = () => {
                       <span className="text-sm text-[#9B9B9B]">Duration preset</span>
                     </div>
                     <div className="flex gap-1">
-                      {["7", "14", "30", "90"].map((days) => (
+                      {["7", "14", "30", "90"].map(days => (
                         <button
                           key={days}
                           onClick={() => setFormData({ ...formData, durationDays: days })}
@@ -159,7 +151,7 @@ const CreatePledgePage: NextPage = () => {
                       <span className="text-sm text-[#9B9B9B]">Founder share</span>
                     </div>
                     <div className="flex gap-1">
-                      {["10", "25", "51", "75"].map((pct) => (
+                      {["10", "25", "51", "75"].map(pct => (
                         <button
                           key={pct}
                           onClick={() => setFormData({ ...formData, founderShareBps: String(Number(pct) * 100) })}
@@ -187,13 +179,15 @@ const CreatePledgePage: NextPage = () => {
             <div className="bg-[#131313] border border-[#222222] rounded-2xl p-6">
               {/* Step 1 */}
               <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  currentStep === 1
-                    ? "bg-[#FF007A] text-white"
-                    : isStep1Valid
-                    ? "bg-[#27AE60] text-white"
-                    : "bg-[#1B1B1B] text-[#5E5E5E]"
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    currentStep === 1
+                      ? "bg-[#FF007A] text-white"
+                      : isStep1Valid
+                        ? "bg-[#27AE60] text-white"
+                        : "bg-[#1B1B1B] text-[#5E5E5E]"
+                  }`}
+                >
                   {isStep1Valid && currentStep > 1 ? (
                     <CheckIcon className="h-4 w-4" />
                   ) : (
@@ -201,14 +195,14 @@ const CreatePledgePage: NextPage = () => {
                   )}
                 </div>
                 <div>
-                  <p className={`text-xs uppercase tracking-wide ${
-                    currentStep === 1 ? "text-[#FF007A]" : "text-[#5E5E5E]"
-                  }`}>
+                  <p
+                    className={`text-xs uppercase tracking-wide ${
+                      currentStep === 1 ? "text-[#FF007A]" : "text-[#5E5E5E]"
+                    }`}
+                  >
                     Step 1
                   </p>
-                  <p className={`text-sm font-medium ${
-                    currentStep >= 1 ? "text-white" : "text-[#5E5E5E]"
-                  }`}>
+                  <p className={`text-sm font-medium ${currentStep >= 1 ? "text-white" : "text-[#5E5E5E]"}`}>
                     Project identity
                   </p>
                 </div>
@@ -219,13 +213,15 @@ const CreatePledgePage: NextPage = () => {
 
               {/* Step 2 */}
               <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  currentStep === 2
-                    ? "bg-[#FF007A] text-white"
-                    : isStep2Valid && currentStep > 2
-                    ? "bg-[#27AE60] text-white"
-                    : "bg-[#1B1B1B] text-[#5E5E5E]"
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    currentStep === 2
+                      ? "bg-[#FF007A] text-white"
+                      : isStep2Valid && currentStep > 2
+                        ? "bg-[#27AE60] text-white"
+                        : "bg-[#1B1B1B] text-[#5E5E5E]"
+                  }`}
+                >
                   {isStep2Valid && currentStep > 2 ? (
                     <CheckIcon className="h-4 w-4" />
                   ) : (
@@ -233,14 +229,14 @@ const CreatePledgePage: NextPage = () => {
                   )}
                 </div>
                 <div>
-                  <p className={`text-xs uppercase tracking-wide ${
-                    currentStep === 2 ? "text-[#FF007A]" : "text-[#5E5E5E]"
-                  }`}>
+                  <p
+                    className={`text-xs uppercase tracking-wide ${
+                      currentStep === 2 ? "text-[#FF007A]" : "text-[#5E5E5E]"
+                    }`}
+                  >
                     Step 2
                   </p>
-                  <p className={`text-sm font-medium ${
-                    currentStep >= 2 ? "text-white" : "text-[#5E5E5E]"
-                  }`}>
+                  <p className={`text-sm font-medium ${currentStep >= 2 ? "text-white" : "text-[#5E5E5E]"}`}>
                     Funding parameters
                   </p>
                 </div>
@@ -251,22 +247,22 @@ const CreatePledgePage: NextPage = () => {
 
               {/* Step 3 - Review */}
               <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  currentStep === 3
-                    ? "bg-[#FF007A] text-white"
-                    : "bg-[#1B1B1B] text-[#5E5E5E]"
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    currentStep === 3 ? "bg-[#FF007A] text-white" : "bg-[#1B1B1B] text-[#5E5E5E]"
+                  }`}
+                >
                   <span className="text-sm font-medium">3</span>
                 </div>
                 <div>
-                  <p className={`text-xs uppercase tracking-wide ${
-                    currentStep === 3 ? "text-[#FF007A]" : "text-[#5E5E5E]"
-                  }`}>
+                  <p
+                    className={`text-xs uppercase tracking-wide ${
+                      currentStep === 3 ? "text-[#FF007A]" : "text-[#5E5E5E]"
+                    }`}
+                  >
                     Step 3
                   </p>
-                  <p className={`text-sm font-medium ${
-                    currentStep >= 3 ? "text-white" : "text-[#5E5E5E]"
-                  }`}>
+                  <p className={`text-sm font-medium ${currentStep >= 3 ? "text-white" : "text-[#5E5E5E]"}`}>
                     Review & create
                   </p>
                 </div>
@@ -282,31 +278,25 @@ const CreatePledgePage: NextPage = () => {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-lg font-medium text-white mb-1">Project identity</h2>
-                    <p className="text-sm text-[#5E5E5E]">
-                      Define your project name and ticker symbol for the token.
-                    </p>
+                    <p className="text-sm text-[#5E5E5E]">Define your project name and ticker symbol for the token.</p>
                   </div>
 
                   {/* Project Name */}
                   <div>
-                    <label className="text-xs text-[#5E5E5E] uppercase tracking-wide block mb-2">
-                      Project Name
-                    </label>
+                    <label className="text-xs text-[#5E5E5E] uppercase tracking-wide block mb-2">Project Name</label>
                     <input
                       type="text"
                       placeholder="Enter project name"
                       className="w-full bg-[#1B1B1B] border border-[#222222] rounded-xl px-4 py-3 text-white placeholder-[#5E5E5E] focus:border-[#FF007A] focus:outline-none transition-colors"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
 
                   {/* Ticker Symbol */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs text-[#5E5E5E] uppercase tracking-wide">
-                        Ticker Symbol
-                      </label>
+                      <label className="text-xs text-[#5E5E5E] uppercase tracking-wide">Ticker Symbol</label>
                       <span className="text-xs text-[#5E5E5E]">3-6 characters</span>
                     </div>
                     <div className="flex">
@@ -320,7 +310,7 @@ const CreatePledgePage: NextPage = () => {
                         maxLength={6}
                         minLength={3}
                         value={formData.ticker}
-                        onChange={(e) =>
+                        onChange={e =>
                           setFormData({ ...formData, ticker: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "") })
                         }
                       />
@@ -341,7 +331,7 @@ const CreatePledgePage: NextPage = () => {
                       placeholder="Describe your project..."
                       className="w-full bg-[#1B1B1B] border border-[#222222] rounded-xl px-4 py-3 text-white placeholder-[#5E5E5E] focus:border-[#FF007A] focus:outline-none transition-colors h-24 resize-none"
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={e => setFormData({ ...formData, description: e.target.value })}
                     />
                   </div>
 
@@ -355,7 +345,7 @@ const CreatePledgePage: NextPage = () => {
                       placeholder="https://..."
                       className="w-full bg-[#1B1B1B] border border-[#222222] rounded-xl px-4 py-3 text-white placeholder-[#5E5E5E] focus:border-[#FF007A] focus:outline-none transition-colors"
                       value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
                     />
                   </div>
                 </div>
@@ -366,16 +356,12 @@ const CreatePledgePage: NextPage = () => {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-lg font-medium text-white mb-1">Funding parameters</h2>
-                    <p className="text-sm text-[#5E5E5E]">
-                      Set your funding goal, duration, and token distribution.
-                    </p>
+                    <p className="text-sm text-[#5E5E5E]">Set your funding goal, duration, and token distribution.</p>
                   </div>
 
                   {/* Funding Goal */}
                   <div>
-                    <label className="text-xs text-[#5E5E5E] uppercase tracking-wide block mb-2">
-                      Funding Goal
-                    </label>
+                    <label className="text-xs text-[#5E5E5E] uppercase tracking-wide block mb-2">Funding Goal</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -384,7 +370,7 @@ const CreatePledgePage: NextPage = () => {
                         step="0.01"
                         className="w-full bg-[#1B1B1B] border border-[#222222] rounded-xl px-4 py-3 pr-16 text-white placeholder-[#5E5E5E] focus:border-[#FF007A] focus:outline-none transition-colors text-lg"
                         value={formData.fundingGoal}
-                        onChange={(e) => setFormData({ ...formData, fundingGoal: e.target.value })}
+                        onChange={e => setFormData({ ...formData, fundingGoal: e.target.value })}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-[#131313] px-2 py-1 rounded-lg">
                         <div className="w-5 h-5 rounded-full bg-[#627EEA] flex items-center justify-center">
@@ -398,9 +384,7 @@ const CreatePledgePage: NextPage = () => {
                   {/* Duration */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs text-[#5E5E5E] uppercase tracking-wide">
-                        Funding Duration
-                      </label>
+                      <label className="text-xs text-[#5E5E5E] uppercase tracking-wide">Funding Duration</label>
                       <span className="text-xs text-[#5E5E5E]">1-365 days</span>
                     </div>
                     <div className="relative">
@@ -410,23 +394,17 @@ const CreatePledgePage: NextPage = () => {
                         max="365"
                         className="w-full bg-[#1B1B1B] border border-[#222222] rounded-xl px-4 py-3 pr-16 text-white placeholder-[#5E5E5E] focus:border-[#FF007A] focus:outline-none transition-colors"
                         value={formData.durationDays}
-                        onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
+                        onChange={e => setFormData({ ...formData, durationDays: e.target.value })}
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5E5E5E] text-sm">
-                        days
-                      </span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5E5E5E] text-sm">days</span>
                     </div>
                   </div>
 
                   {/* Founder Share Slider */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs text-[#5E5E5E] uppercase tracking-wide">
-                        Founder Share
-                      </label>
-                      <span className="text-sm text-white font-mono">
-                        {Number(formData.founderShareBps) / 100}%
-                      </span>
+                      <label className="text-xs text-[#5E5E5E] uppercase tracking-wide">Founder Share</label>
+                      <span className="text-sm text-white font-mono">{Number(formData.founderShareBps) / 100}%</span>
                     </div>
                     <input
                       type="range"
@@ -435,7 +413,7 @@ const CreatePledgePage: NextPage = () => {
                       step="100"
                       className="w-full h-2 bg-[#1B1B1B] rounded-lg appearance-none cursor-pointer accent-[#FF007A]"
                       value={formData.founderShareBps}
-                      onChange={(e) => setFormData({ ...formData, founderShareBps: e.target.value })}
+                      onChange={e => setFormData({ ...formData, founderShareBps: e.target.value })}
                     />
                     <div className="flex justify-between text-xs text-[#5E5E5E] mt-1">
                       <span>1%</span>
@@ -445,18 +423,13 @@ const CreatePledgePage: NextPage = () => {
 
                   {/* Token Distribution Preview */}
                   <div className="bg-[#1B1B1B] rounded-xl p-4 border border-[#222222]">
-                    <p className="text-xs text-[#5E5E5E] uppercase tracking-wide mb-3">
-                      Token Distribution
-                    </p>
+                    <p className="text-xs text-[#5E5E5E] uppercase tracking-wide mb-3">Token Distribution</p>
                     <div className="h-4 bg-[#0D0D0D] rounded-full overflow-hidden flex">
                       <div
                         className="h-full bg-[#FF007A]"
                         style={{ width: `${Number(formData.founderShareBps) / 100}%` }}
                       />
-                      <div
-                        className="h-full bg-[#27AE60]"
-                        style={{ width: `${publicSharePercent}%` }}
-                      />
+                      <div className="h-full bg-[#27AE60]" style={{ width: `${publicSharePercent}%` }} />
                     </div>
                     <div className="flex justify-between mt-3">
                       <div className="flex items-center gap-2">
@@ -467,9 +440,7 @@ const CreatePledgePage: NextPage = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-[#27AE60]" />
-                        <span className="text-xs text-[#9B9B9B]">
-                          Public: {publicSharePercent}%
-                        </span>
+                        <span className="text-xs text-[#9B9B9B]">Public: {publicSharePercent}%</span>
                       </div>
                     </div>
                   </div>
@@ -481,9 +452,7 @@ const CreatePledgePage: NextPage = () => {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-lg font-medium text-white mb-1">Review & create</h2>
-                    <p className="text-sm text-[#5E5E5E]">
-                      Confirm your pledge details before creating.
-                    </p>
+                    <p className="text-sm text-[#5E5E5E]">Confirm your pledge details before creating.</p>
                   </div>
 
                   {/* Summary Card */}
@@ -527,7 +496,8 @@ const CreatePledgePage: NextPage = () => {
                       <div>
                         <p className="text-sm text-white mb-1">This action is irreversible</p>
                         <p className="text-xs text-[#9B9B9B]">
-                          Once created, the pledge parameters cannot be changed. The funding goal and duration are final.
+                          Once created, the pledge parameters cannot be changed. The funding goal and duration are
+                          final.
                         </p>
                       </div>
                     </div>
@@ -545,7 +515,7 @@ const CreatePledgePage: NextPage = () => {
                     Back
                   </button>
                 )}
-                
+
                 {currentStep < 3 ? (
                   <button
                     onClick={() => setCurrentStep(currentStep + 1)}
@@ -560,11 +530,7 @@ const CreatePledgePage: NextPage = () => {
                     disabled={isPending || !canCreate}
                     className="flex-1 bg-[#FF007A] hover:bg-[#E5006D] disabled:bg-[#1B1B1B] disabled:text-[#5E5E5E] text-white font-medium py-3.5 px-6 rounded-xl transition-colors"
                   >
-                    {isPending ? (
-                      <span className="loading loading-spinner loading-sm"></span>
-                    ) : (
-                      "Create Pledge"
-                    )}
+                    {isPending ? <span className="loading loading-spinner loading-sm"></span> : "Create Pledge"}
                   </button>
                 ) : (
                   <div className="flex-1">
